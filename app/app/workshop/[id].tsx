@@ -24,6 +24,7 @@ export default function WorkshopDetailScreen() {
   const [activePhoto, setActivePhoto] = useState(0);
   const [showFullDescription, setShowFullDescription] = useState(false);
   const [showFullBio, setShowFullBio] = useState(false);
+  const [showAuthPrompt, setShowAuthPrompt] = useState(false);
   const {user} = useStore();
   if (isLoading || !workshop) {
     return (
@@ -33,15 +34,22 @@ export default function WorkshopDetailScreen() {
     );
   }
 
-  
-const handleBookSession = () => {
-  if (!user) {
+  const handleBookSession = () => {
+    if (!user) {
+      setShowAuthPrompt(true);
+      return;
+    }
+
+    router.push(`/booking/${workshop.id}`);
+  };
+
+  if (showAuthPrompt && !user) {
     return (
       <SafeAreaView style={styles.container} edges={['top']}>
         <Text style={styles.screenTitle}>Book A Session</Text>
         <View style={styles.authPrompt}>
           <Text style={styles.authTitle}>Sign in to book a session.</Text>
-          <Text style={styles.authSubtitle}>We cannot to wait for you to learn a new skill!</Text>
+          <Text style={styles.authSubtitle}>We cannot wait for you to learn a new skill!</Text>
           <Pressable style={styles.authButton} onPress={() => router.push('/login')}>
             <Text style={styles.authButtonText}>Sign In</Text>
           </Pressable>
@@ -49,8 +57,7 @@ const handleBookSession = () => {
       </SafeAreaView>
     );
   }
-  router.push(`/booking/${workshop.id}`)
-}
+
   return (
     <View style={styles.container}>
       <ScrollView showsVerticalScrollIndicator={false}>
