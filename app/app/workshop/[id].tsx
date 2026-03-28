@@ -22,6 +22,7 @@ export default function WorkshopDetailScreen() {
   const { data: workshop, isLoading } = useWorkshopDetail(id);
   const [activePhoto, setActivePhoto] = useState(0);
   const [showFullDescription, setShowFullDescription] = useState(false);
+  const [showFullBio, setShowFullBio] = useState(false);
 
   if (isLoading || !workshop) {
     return (
@@ -101,7 +102,21 @@ export default function WorkshopDetailScreen() {
             <View style={styles.hostInfo}>
               <Text style={styles.hostName}>Hosted by {workshop.host?.full_name}</Text>
               {workshop.host?.bio && (
-                <Text style={styles.hostBio} numberOfLines={2}>{workshop.host.bio}</Text>
+                <>
+                  <Text
+                    style={styles.hostBio}
+                    numberOfLines={showFullBio ? undefined : 2}
+                  >
+                    {workshop.host.bio}
+                  </Text>
+                  {workshop.host.bio.length > 80 && (
+                    <Pressable onPress={() => setShowFullBio(!showFullBio)}>
+                      <Text style={styles.bioToggle}>
+                        {showFullBio ? 'See less' : 'See more'}
+                      </Text>
+                    </Pressable>
+                  )}
+                </>
               )}
             </View>
           </View>
@@ -229,7 +244,8 @@ const styles = StyleSheet.create({
   hostAvatar: { width: 48, height: 48, borderRadius: 24, backgroundColor: '#e0e0e0' },
   hostInfo: { marginLeft: 12, flex: 1 },
   hostName: { fontSize: 16, fontWeight: '600', color: '#000' },
-  hostBio: { fontSize: 13, color: '#888', marginTop: 4 },
+  hostBio: { fontSize: 13, color: '#888', marginTop: 4, lineHeight: 19 },
+  bioToggle: { fontSize: 13, fontWeight: '600', color: '#000', marginTop: 4 },
   sectionTitle: { fontSize: 18, fontWeight: '700', color: '#000', marginBottom: 12 },
   tagRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 20 },
   tag: { backgroundColor: '#f0f0f0', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 12 },
