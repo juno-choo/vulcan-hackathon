@@ -1,11 +1,22 @@
-import { View, Text, StyleSheet, Pressable, Image } from 'react-native';
+import { View, Text, StyleSheet, Pressable, Image, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { useStore } from '@/lib/store';
+import { useUserProjects } from '@/hooks/useSnapshots';
 
 export default function ProfileScreen() {
   const { user, signOut } = useStore();
   const router = useRouter();
+  const { data: projects = [] } = useUserProjects(user?.id || '');
+
+  const handleOpenProjects = () => {
+    if (!projects.length) {
+      Alert.alert('No projects yet', 'Book and complete a session to start seeing snapshots.');
+      return;
+    }
+
+    router.push(`/snapshot/${projects[0].id}`);
+  };
 
   if (!user) {
     return (

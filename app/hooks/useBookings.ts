@@ -1,11 +1,13 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { api } from '@/lib/api';
-import type { Booking, BookingStatus } from '@/types';
+import { api } from "@/lib/api";
+import type { Booking, BookingStatus } from "@/types";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+
+
 
 export function useUserBookings(userId: string, status?: BookingStatus) {
-  const query = status ? `?status=${status}` : '';
+  const query = status ? `?status=${status}` : "";
   return useQuery({
-    queryKey: ['bookings', 'user', userId, status],
+    queryKey: ["bookings", "user", userId, status],
     queryFn: () => api.get<Booking[]>(`/bookings/user/${userId}${query}`),
     enabled: !!userId,
   });
@@ -13,7 +15,7 @@ export function useUserBookings(userId: string, status?: BookingStatus) {
 
 export function useWorkshopBookings(workshopId: string) {
   return useQuery({
-    queryKey: ['bookings', 'workshop', workshopId],
+    queryKey: ["bookings", "workshop", workshopId],
     queryFn: () => api.get<Booking[]>(`/bookings/workshop/${workshopId}`),
     enabled: !!workshopId,
   });
@@ -30,10 +32,11 @@ export function useCreateBooking() {
       addonIds?: string[];
       safetyAcknowledged: boolean;
       notes?: string;
-    }) => api.post<Booking>('/bookings', data),
+    }) =>
+      api.post<Booking>("/bookings", data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['bookings'] });
-      queryClient.invalidateQueries({ queryKey: ['workshops'] });
+      queryClient.invalidateQueries({ queryKey: ["bookings"] });
+      queryClient.invalidateQueries({ queryKey: ["workshops"] });
     },
   });
 }
@@ -44,7 +47,7 @@ export function useUpdateBookingStatus() {
     mutationFn: ({ id, status }: { id: string; status: BookingStatus }) =>
       api.patch<Booking>(`/bookings/${id}/status`, { status }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['bookings'] });
+      queryClient.invalidateQueries({ queryKey: ["bookings"] });
     },
   });
 }
