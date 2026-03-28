@@ -58,7 +58,9 @@ export default function HomeScreen() {
           <View style={styles.equipmentRow}>
             {item.equipment?.slice(0, 3).map((we) => (
               <View key={we.id} style={styles.equipmentPill}>
-                <Text style={styles.equipmentPillText}>{we.equipment.name}</Text>
+                <Text style={styles.equipmentPillText} numberOfLines={1} ellipsizeMode="tail">
+                  {we.equipment.name}
+                </Text>
               </View>
             ))}
             {(item.equipment?.length || 0) > 3 && (
@@ -199,16 +201,18 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
   },
-  equipmentRow: { flexDirection: 'row', gap: 6, flexShrink: 1 },
+  equipmentRow: { flex: 1, minWidth: 0, flexDirection: 'row', gap: 6, marginRight: 10 },
   equipmentPill: {
     backgroundColor: '#f0f0f0',
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 8,
+    minWidth: 0,
+    maxWidth: 80,
   },
-  equipmentPillText: { fontSize: 11, color: '#555', fontWeight: '500' },
+  equipmentPillText: { fontSize: 11, color: '#555', fontWeight: '500', flexShrink: 1 },
   moreText: { fontSize: 12, color: '#999', alignSelf: 'center' },
-  price: { fontSize: 20, fontWeight: '700', color: '#000' },
+  price: { fontSize: 20, fontWeight: '700', color: '#000', flexShrink: 0 },
   priceUnit: { fontSize: 14, fontWeight: '400', color: '#888' },
   empty: { alignItems: 'center', marginTop: 60 },
   emptyTitle: { fontSize: 18, fontWeight: '600', color: '#333' },
