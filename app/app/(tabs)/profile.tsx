@@ -1,9 +1,26 @@
 import { View, Text, StyleSheet, Pressable, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useRouter } from 'expo-router';
 import { useStore } from '@/lib/store';
 
 export default function ProfileScreen() {
   const { user, signOut } = useStore();
+  const router = useRouter();
+
+  if (!user) {
+    return (
+      <SafeAreaView style={styles.container} edges={['top']}>
+        <Text style={styles.screenTitle}>Profile</Text>
+        <View style={styles.authPrompt}>
+          <Text style={styles.authTitle}>Sign in to your account</Text>
+          <Text style={styles.authSubtitle}>Manage your profile, projects, and settings</Text>
+          <Pressable style={styles.authButton} onPress={() => router.push('/login')}>
+            <Text style={styles.authButtonText}>Sign In</Text>
+          </Pressable>
+        </View>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
@@ -11,12 +28,12 @@ export default function ProfileScreen() {
 
       <View style={styles.profileCard}>
         <Image
-          source={{ uri: user?.avatar_url || 'https://images.unsplash.com/photo-1599566150163-29194dcabd9c?w=200' }}
+          source={{ uri: user.avatar_url || 'https://images.unsplash.com/photo-1599566150163-29194dcabd9c?w=200' }}
           style={styles.avatar}
         />
         <View style={styles.profileInfo}>
-          <Text style={styles.name}>{user?.full_name || 'Guest User'}</Text>
-          <Text style={styles.email}>{user?.email || 'Not signed in'}</Text>
+          <Text style={styles.name}>{user.full_name}</Text>
+          <Text style={styles.email}>{user.email}</Text>
         </View>
       </View>
 
@@ -39,7 +56,7 @@ function MenuItem({ label }: { label: string }) {
   return (
     <Pressable style={styles.menuItem}>
       <Text style={styles.menuItemText}>{label}</Text>
-      <Text style={styles.menuItemArrow}>›</Text>
+      <Text style={styles.menuItemArrow}>{'\u203A'}</Text>
     </Pressable>
   );
 }
@@ -77,4 +94,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   signOutText: { fontSize: 16, fontWeight: '600', color: '#FF3B30' },
+  authPrompt: { flex: 1, justifyContent: 'center', alignItems: 'center', paddingHorizontal: 32 },
+  authTitle: { fontSize: 20, fontWeight: '700', color: '#000' },
+  authSubtitle: { fontSize: 14, color: '#888', marginTop: 8, textAlign: 'center' },
+  authButton: {
+    marginTop: 24,
+    backgroundColor: '#000',
+    paddingHorizontal: 32,
+    paddingVertical: 14,
+    borderRadius: 12,
+  },
+  authButtonText: { color: '#fff', fontSize: 16, fontWeight: '700' },
 });

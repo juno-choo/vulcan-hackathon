@@ -157,35 +157,35 @@ async function main() {
   // ──────────────────────────────────────
   const hosts = await Promise.all([
     prisma.user.create({ data: {
-      authId: 'host-auth-001', email: 'marcus.turner@example.com', fullName: 'Marcus Turner', role: 'HOST',
+      email: 'marcus.turner@example.com', password: 'password', fullName: 'Marcus Turner', role: 'HOST',
       bio: 'Master woodworker with 20 years of experience. I love sharing the craft and helping beginners discover the joy of working with wood.',
       phone: '316-555-0101',
       location: { city: 'Wichita', state: 'KS', lat: 37.6872, lng: -97.3301 },
       avatarUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200',
     }}),
     prisma.user.create({ data: {
-      authId: 'host-auth-002', email: 'sarah.chen@example.com', fullName: 'Sarah Chen', role: 'HOST',
+      email: 'sarah.chen@example.com', password: 'password', fullName: 'Sarah Chen', role: 'HOST',
       bio: 'Metalworker and sculptor. My studio is open for anyone who wants to learn welding, forging, or just make something cool out of steel.',
       phone: '316-555-0102',
       location: { city: 'Wichita', state: 'KS', lat: 37.6922, lng: -97.3375 },
       avatarUrl: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=200',
     }}),
     prisma.user.create({ data: {
-      authId: 'host-auth-003', email: 'david.okafor@example.com', fullName: 'David Okafor', role: 'HOST',
+      email: 'david.okafor@example.com', password: 'password', fullName: 'David Okafor', role: 'HOST',
       bio: 'Digital fabrication enthusiast. 3D printing, CNC routing, laser cutting — if it involves a computer and a machine, I am your guy.',
       phone: '316-555-0103',
       location: { city: 'Wichita', state: 'KS', lat: 37.6840, lng: -97.3450 },
       avatarUrl: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=200',
     }}),
     prisma.user.create({ data: {
-      authId: 'host-auth-004', email: 'maria.garcia@example.com', fullName: 'Maria Garcia', role: 'HOST',
+      email: 'maria.garcia@example.com', password: 'password', fullName: 'Maria Garcia', role: 'HOST',
       bio: 'Ceramic artist with a focus on wheel throwing and hand building. My studio has two kick wheels and a gas kiln.',
       phone: '316-555-0104',
       location: { city: 'Wichita', state: 'KS', lat: 37.6950, lng: -97.3200 },
       avatarUrl: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=200',
     }}),
     prisma.user.create({ data: {
-      authId: 'host-auth-005', email: 'james.wright@example.com', fullName: 'James Wright', role: 'HOST',
+      email: 'james.wright@example.com', password: 'password', fullName: 'James Wright', role: 'HOST',
       bio: 'Retired shop teacher turned workshop host. Woodworking and metalworking are my two passions.',
       phone: '316-555-0105',
       location: { city: 'Wichita', state: 'KS', lat: 37.6800, lng: -97.3500 },
@@ -195,14 +195,14 @@ async function main() {
 
   const bookers = await Promise.all([
     prisma.user.create({ data: {
-      authId: 'booker-auth-001', email: 'alex.kim@example.com', fullName: 'Alex Kim', role: 'BOOKER',
+      email: 'alex.kim@example.com', password: 'password', fullName: 'Alex Kim', role: 'BOOKER',
       bio: 'Software developer looking to learn hands-on skills on weekends.',
       phone: '316-555-0201',
       location: { city: 'Wichita', state: 'KS', lat: 37.6890, lng: -97.3360 },
       avatarUrl: 'https://images.unsplash.com/photo-1599566150163-29194dcabd9c?w=200',
     }}),
     prisma.user.create({ data: {
-      authId: 'booker-auth-002', email: 'priya.patel@example.com', fullName: 'Priya Patel', role: 'BOOKER',
+      email: 'priya.patel@example.com', password: 'password', fullName: 'Priya Patel', role: 'BOOKER',
       bio: 'Architecture student wanting to prototype designs in real materials.',
       phone: '316-555-0202',
       location: { city: 'Wichita', state: 'KS', lat: 37.6910, lng: -97.3280 },
