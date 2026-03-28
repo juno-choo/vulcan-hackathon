@@ -87,29 +87,38 @@ export default function HomeScreen() {
       </View>
 
       {/* Category Pills */}
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.pillRow}
-      >
-        <Pressable
-          style={[styles.pill, !selectedCategory && styles.pillActive]}
-          onPress={() => setSelectedCategory(undefined)}
+      <View style={styles.pillLane}>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.pillRow}
         >
-          <Text style={[styles.pillText, !selectedCategory && styles.pillTextActive]}>All</Text>
-        </Pressable>
-        {serviceCategories.map((cat) => (
           <Pressable
-            key={cat.id}
-            style={[styles.pill, selectedCategory === cat.id && styles.pillActive]}
-            onPress={() => setSelectedCategory(selectedCategory === cat.id ? undefined : cat.id)}
+            style={[styles.pill, !selectedCategory && styles.pillActive]}
+            onPress={() => setSelectedCategory(undefined)}
           >
-            <Text style={[styles.pillText, selectedCategory === cat.id && styles.pillTextActive]}>
-              {cat.name}
+            <Text allowFontScaling={false} style={[styles.pillText, !selectedCategory && styles.pillTextActive]}>
+              All
             </Text>
           </Pressable>
-        ))}
-      </ScrollView>
+          {serviceCategories.map((cat) => (
+            <Pressable
+              key={cat.id}
+              style={[styles.pill, selectedCategory === cat.id && styles.pillActive]}
+              onPress={() => setSelectedCategory(selectedCategory === cat.id ? undefined : cat.id)}
+            >
+              <Text
+                allowFontScaling={false}
+                numberOfLines={1}
+                ellipsizeMode="tail"
+                style={[styles.pillText, selectedCategory === cat.id && styles.pillTextActive]}
+              >
+                {cat.name}
+              </Text>
+            </Pressable>
+          ))}
+        </ScrollView>
+      </View>
 
       {/* Workshop Cards */}
       <FlatList
@@ -153,15 +162,26 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   filterIcon: { fontSize: 20 },
-  pillRow: { paddingHorizontal: 20, gap: 8, paddingBottom: 16 },
+  pillLane: { height: 52, justifyContent: 'center', marginBottom: 8 },
+  pillRow: { paddingHorizontal: 20, gap: 8, alignItems: 'center', paddingVertical: 4 },
   pill: {
     paddingHorizontal: 16,
-    paddingVertical: 8,
+    height: 40,
     borderRadius: 20,
     backgroundColor: '#f5f5f5',
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexShrink: 0,
   },
   pillActive: { backgroundColor: '#000' },
-  pillText: { fontSize: 14, color: '#666', fontWeight: '500' },
+  pillText: {
+    fontSize: 14,
+    lineHeight: 18,
+    color: '#666',
+    fontWeight: '500',
+    includeFontPadding: false,
+    textAlignVertical: 'center',
+  },
   pillTextActive: { color: '#fff' },
   list: { paddingHorizontal: 20, paddingBottom: 20 },
   card: {
