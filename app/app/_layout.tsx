@@ -57,6 +57,10 @@ export default function RootLayout() {
             name="snapshot/[projectId]"
             options={{ headerShown: false, presentation: 'card' }}
           />
+          <Stack.Screen
+            name="login"
+            options={{ headerShown: false, presentation: 'modal' }}
+          />
         </Stack>
       </QueryClientProvider>
     </GestureHandlerRootView>

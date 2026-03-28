@@ -35,12 +35,16 @@ npx expo run:ios         # Dev build iOS
 - **API layer:** Custom fetch wrapper in `lib/api.ts`, base URL from `EXPO_PUBLIC_API_URL`.
 - **Types:** All in `types/index.ts`, matching Prisma snake_case DB output.
 - **Init flow:** Root `_layout.tsx` calls `useStore.initialize()` → fetches session + `/api/lookups/all` into Zustand.
+- **Path alias:** `@/` maps to the `app/` project root (e.g., `@/types`, `@/lib/store`).
+- **Tabs:** Home (index), Map, Bookings, Profile.
+- **React Query config:** 5-min stale time, 2 retries. Wrapped at root layout level.
+- **No linter or test runner configured.** No ESLint, no Jest/Vitest.
 
 ### Backend (`backend/`)
-- **Entry:** `src/app.ts` — Express with CORS, routes mounted at `/api/*`.
+- **Entry:** `src/app.ts` — Express with CORS, routes mounted at `/api/*`. Static files served at `/uploads`.
 - **Routes:** `src/routes/` organized by domain: `lookups`, `workshops`, `bookings`, `snapshots`.
-- **DB:** Prisma ORM → Supabase PostgreSQL. Schema in `prisma/schema.prisma` (16 models). Seed in `prisma/seed.ts`.
-- **Supabase client:** `src/lib/supabase.ts` used for REST queries alongside Prisma.
+- **DB:** Prisma for schema management and seeding only. **Runtime queries use Supabase JS client** (`src/lib/supabase.ts`), not Prisma Client. Schema in `prisma/schema.prisma` (16 models). Seed in `prisma/seed.ts`.
+- **Auth:** Supabase Auth handled client-side — the backend has no auth middleware. User identity comes from request body (e.g., `bookerId`), not tokens.
 
 ### Key API endpoints
 - `GET /api/lookups/all` — all lookups in one call (cached on app init)

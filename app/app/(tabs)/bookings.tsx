@@ -37,6 +37,21 @@ export default function BookingsScreen() {
 
   const { data: bookings = [], isLoading } = useUserBookings(user?.id || '', statusFilter);
 
+  if (!user) {
+    return (
+      <SafeAreaView style={styles.container} edges={['top']}>
+        <Text style={styles.screenTitle}>My Bookings</Text>
+        <View style={styles.authPrompt}>
+          <Text style={styles.authTitle}>Sign in to view bookings</Text>
+          <Text style={styles.authSubtitle}>Track your upcoming and past workshop sessions</Text>
+          <Pressable style={styles.authButton} onPress={() => router.push('/login')}>
+            <Text style={styles.authButtonText}>Sign In</Text>
+          </Pressable>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
   const formatDate = (dateStr: string) => {
     const d = new Date(dateStr);
     return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
@@ -171,4 +186,15 @@ const styles = StyleSheet.create({
   empty: { alignItems: 'center', marginTop: 60 },
   emptyTitle: { fontSize: 18, fontWeight: '600', color: '#333' },
   emptySubtitle: { fontSize: 14, color: '#999', marginTop: 4 },
+  authPrompt: { flex: 1, justifyContent: 'center', alignItems: 'center', paddingHorizontal: 32 },
+  authTitle: { fontSize: 20, fontWeight: '700', color: '#000' },
+  authSubtitle: { fontSize: 14, color: '#888', marginTop: 8, textAlign: 'center' },
+  authButton: {
+    marginTop: 24,
+    backgroundColor: '#000',
+    paddingHorizontal: 32,
+    paddingVertical: 14,
+    borderRadius: 12,
+  },
+  authButtonText: { color: '#fff', fontSize: 16, fontWeight: '700' },
 });

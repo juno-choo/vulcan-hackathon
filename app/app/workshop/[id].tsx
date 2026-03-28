@@ -13,6 +13,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useWorkshopDetail } from '@/hooks/useWorkshops';
+import { useStore } from '@/lib/store';
 
 const { width } = Dimensions.get('window');
 
@@ -23,7 +24,7 @@ export default function WorkshopDetailScreen() {
   const [activePhoto, setActivePhoto] = useState(0);
   const [showFullDescription, setShowFullDescription] = useState(false);
   const [showFullBio, setShowFullBio] = useState(false);
-
+  const {user} = useStore();
   if (isLoading || !workshop) {
     return (
       <View style={styles.loading}>
@@ -32,6 +33,24 @@ export default function WorkshopDetailScreen() {
     );
   }
 
+  
+const handleBookSession = () => {
+  if (!user) {
+    return (
+      <SafeAreaView style={styles.container} edges={['top']}>
+        <Text style={styles.screenTitle}>Book A Session</Text>
+        <View style={styles.authPrompt}>
+          <Text style={styles.authTitle}>Sign in to book a session.</Text>
+          <Text style={styles.authSubtitle}>We cannot to wait for you to learn a new skill!</Text>
+          <Pressable style={styles.authButton} onPress={() => router.push('/login')}>
+            <Text style={styles.authButtonText}>Sign In</Text>
+          </Pressable>
+        </View>
+      </SafeAreaView>
+    );
+  }
+  router.push(`/booking/${workshop.id}`)
+}
   return (
     <View style={styles.container}>
       <ScrollView showsVerticalScrollIndicator={false}>
@@ -185,7 +204,7 @@ export default function WorkshopDetailScreen() {
           </View>
           <Pressable
             style={styles.ctaButton}
-            onPress={() => router.push(`/booking/${workshop.id}`)}
+            onPress={handleBookSession}
           >
             <Text style={styles.ctaButtonText}>Book a session</Text>
           </Pressable>
@@ -197,6 +216,7 @@ export default function WorkshopDetailScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#fff' },
+  screenTitle: { fontSize: 28, fontWeight: '700', paddingHorizontal: 20, paddingTop: 8, paddingBottom: 16 },
   loading: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   heroContainer: { position: 'relative' },
   heroImage: { width, height: 300, backgroundColor: '#f0f0f0' },
@@ -303,4 +323,15 @@ const styles = StyleSheet.create({
     borderRadius: 14,
   },
   ctaButtonText: { color: '#fff', fontSize: 16, fontWeight: '600' },
+  authPrompt: { flex: 1, justifyContent: 'center', alignItems: 'center', paddingHorizontal: 32 },
+  authTitle: { fontSize: 20, fontWeight: '700', color: '#000' },
+  authSubtitle: { fontSize: 14, color: '#888', marginTop: 8, textAlign: 'center' },
+  authButton: {
+    marginTop: 24,
+    backgroundColor: '#000',
+    paddingHorizontal: 32,
+    paddingVertical: 14,
+    borderRadius: 12,
+  },
+  authButtonText: { color: '#fff', fontSize: 16, fontWeight: '700' },
 });

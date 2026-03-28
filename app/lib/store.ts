@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { api } from './api';
-import { supabase } from './supabase';
+import * as SecureStore from 'expo-secure-store';
 import type {
   User,
   ServiceCategory,
@@ -10,10 +10,11 @@ import type {
   LookupsResponse,
 } from '@/types';
 
+const USER_ID_KEY = 'vulcan_user_id';
+
 interface AppState {
   // Auth
   user: User | null;
-  session: any | null;
   isLoading: boolean;
 
   // Lookups
@@ -25,17 +26,14 @@ interface AppState {
 
   // Actions
   setUser: (user: User | null) => void;
-  setSession: (session: any | null) => void;
   fetchLookups: () => Promise<void>;
   signIn: (email: string, password: string) => Promise<void>;
-  signUp: (email: string, password: string, fullName: string, role: 'HOST' | 'BOOKER') => Promise<void>;
   signOut: () => Promise<void>;
   initialize: () => Promise<void>;
 }
 
 export const useStore = create<AppState>((set, get) => ({
   user: null,
-  session: null,
   isLoading: true,
 
   serviceCategories: [],
@@ -45,7 +43,6 @@ export const useStore = create<AppState>((set, get) => ({
   lookupsLoaded: false,
 
   setUser: (user) => set({ user }),
-  setSession: (session) => set({ session }),
 
   fetchLookups: async () => {
     if (get().lookupsLoaded) return;
@@ -64,54 +61,26 @@ export const useStore = create<AppState>((set, get) => ({
   },
 
   signIn: async (email, password) => {
-    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-    if (error) throw error;
-    set({ session: data.session });
-
-    // Fetch user profile from our API
-    // For now we'll use the auth user data
-    const authUser = data.user;
-    if (authUser) {
-      try {
-        // Try to get user from backend
-        const users = await api.get<User[]>(`/workshops?lat=0&lng=0`); // placeholder
-        set({ user: { id: authUser.id, email: authUser.email!, full_name: authUser.user_metadata?.full_name || email } as User });
-      } catch {
-        set({ user: { id: authUser.id, email: authUser.email!, full_name: authUser.user_metadata?.full_name || email } as User });
-      }
-    }
-  },
-
-  signUp: async (email, password, fullName, role) => {
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: { data: { full_name: fullName, role } },
-    });
-    if (error) throw error;
-    set({ session: data.session });
+    const user = await api.post<User>('/auth/login', { email, password });
+    await SecureStore.setItemAsync(USER_ID_KEY, user.id);
+    set({ user });
   },
 
   signOut: async () => {
-    await supabase.auth.signOut();
-    set({ user: null, session: null });
+    await SecureStore.deleteItemAsync(USER_ID_KEY);
+    set({ user: null });
   },
 
   initialize: async () => {
     try {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session?.user) {
-        set({
-          session,
-          user: {
-            id: session.user.id,
-            email: session.user.email!,
-            full_name: session.user.user_metadata?.full_name || session.user.email!,
-          } as User,
-        });
+      const userId = await SecureStore.getItemAsync(USER_ID_KEY);
+      if (userId) {
+        const user = await api.get<User>(`/auth/me/${userId}`);
+        set({ user });
       }
     } catch (err) {
       console.error('Init error:', err);
+      await SecureStore.deleteItemAsync(USER_ID_KEY);
     } finally {
       set({ isLoading: false });
     }

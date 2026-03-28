@@ -5,7 +5,6 @@ export type BookingStatus = 'PENDING' | 'CONFIRMED' | 'COMPLETED' | 'CANCELLED';
 
 export interface User {
   id: string;
-  auth_id?: string;
   email: string;
   full_name: string;
   role?: UserRole;
