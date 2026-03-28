@@ -73,23 +73,34 @@ export default function BookingsScreen() {
     <SafeAreaView style={styles.container} edges={['top']}>
       <Text style={styles.screenTitle}>My Bookings</Text>
 
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.pillRow}
-      >
-        {STATUS_TABS.map((tab) => (
-          <Pressable
-            key={tab.label}
-            style={[styles.pill, statusFilter === tab.value && !tab.value === !statusFilter && styles.pillActive]}
-            onPress={() => setStatusFilter(tab.value)}
-          >
-            <Text style={[styles.pillText, statusFilter === tab.value && !tab.value === !statusFilter && styles.pillTextActive]}>
-              {tab.label}
-            </Text>
-          </Pressable>
-        ))}
-      </ScrollView>
+      <View style={styles.pillLane}>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.pillRow}
+        >
+          {STATUS_TABS.map((tab) => {
+            const isActive = statusFilter === tab.value;
+
+            return (
+              <Pressable
+                key={tab.label}
+                style={[styles.pill, isActive && styles.pillActive]}
+                onPress={() => setStatusFilter(tab.value)}
+              >
+                <Text
+                  allowFontScaling={false}
+                  numberOfLines={1}
+                  ellipsizeMode="tail"
+                  style={[styles.pillText, isActive && styles.pillTextActive]}
+                >
+                  {tab.label}
+                </Text>
+              </Pressable>
+            );
+          })}
+        </ScrollView>
+      </View>
 
       {isLoading ? (
         <ActivityIndicator style={{ marginTop: 40 }} />
@@ -115,15 +126,26 @@ export default function BookingsScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#fff' },
   screenTitle: { fontSize: 28, fontWeight: '700', paddingHorizontal: 20, paddingTop: 8, paddingBottom: 16 },
-  pillRow: { paddingHorizontal: 20, gap: 8, paddingBottom: 16 },
+  pillLane: { height: 52, justifyContent: 'center' },
+  pillRow: { paddingHorizontal: 20, gap: 8, alignItems: 'center', paddingVertical: 4 },
   pill: {
     paddingHorizontal: 14,
-    paddingVertical: 6,
-    borderRadius: 16,
+    height: 40,
+    borderRadius: 20,
     backgroundColor: '#f5f5f5',
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexShrink: 0,
   },
   pillActive: { backgroundColor: '#000' },
-  pillText: { fontSize: 13, color: '#666', fontWeight: '500' },
+  pillText: {
+    fontSize: 13,
+    lineHeight: 17,
+    color: '#666',
+    fontWeight: '500',
+    includeFontPadding: false,
+    textAlignVertical: 'center',
+  },
   pillTextActive: { color: '#fff' },
   list: { paddingHorizontal: 20, paddingBottom: 20 },
   card: {
