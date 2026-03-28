@@ -21,6 +21,15 @@ export function useWorkshopBookings(workshopId: string) {
   });
 }
 
+export function useHostBookings(hostId: string, status?: BookingStatus) {
+  const query = status ? `?status=${status}` : "";
+  return useQuery({
+    queryKey: ["bookings", "host", hostId, status],
+    queryFn: () => api.get<Booking[]>(`/bookings/host/${hostId}${query}`),
+    enabled: !!hostId,
+  });
+}
+
 export function useCreateBooking() {
   const queryClient = useQueryClient();
   return useMutation({

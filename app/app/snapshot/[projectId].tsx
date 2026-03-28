@@ -5,6 +5,23 @@ import Animated, { FadeInDown } from 'react-native-reanimated';
 import { useProjectDetail } from '@/hooks/useSnapshots';
 import type { Snapshot } from '@/types';
 
+function timeAgo(dateStr: string): string {
+  const seconds = Math.floor((Date.now() - new Date(dateStr).getTime()) / 1000);
+  if (seconds < 60) return 'just now';
+  const minutes = Math.floor(seconds / 60);
+  if (minutes < 60) return `${minutes}m ago`;
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `${hours}h ago`;
+  const days = Math.floor(hours / 24);
+  if (days < 7) return `${days}d ago`;
+  const weeks = Math.floor(days / 7);
+  if (weeks < 5) return `${weeks}w ago`;
+  const months = Math.floor(days / 30);
+  if (months < 12) return `${months}mo ago`;
+  const years = Math.floor(days / 365);
+  return `${years}y ago`;
+}
+
 export default function SnapshotTimelineScreen() {
   const { projectId } = useLocalSearchParams<{ projectId: string }>();
   const router = useRouter();
@@ -60,7 +77,10 @@ export default function SnapshotTimelineScreen() {
 
               {/* Snapshot card */}
               <View style={styles.snapshotCard}>
-                <Text style={styles.snapshotNumber}>Snapshot #{snapshot.sequence_number}</Text>
+                <View style={styles.snapshotHeader}>
+                  <Text style={styles.snapshotNumber}>Snapshot #{snapshot.sequence_number}</Text>
+                  <Text style={styles.snapshotTime}>{timeAgo(snapshot.created_at)}</Text>
+                </View>
                 {snapshot.notes && (
                   <Text style={styles.snapshotNotes}>{snapshot.notes}</Text>
                 )}
@@ -76,20 +96,6 @@ export default function SnapshotTimelineScreen() {
                     <Image source={{ uri: snapshot.after_photo_url }} style={styles.photo} />
                   </View>
                 </View>
-
-                {/* Tools used */}
-                {snapshot.tools && snapshot.tools.length > 0 && (
-                  <View style={styles.tagSection}>
-                    <Text style={styles.tagLabel}>Tools used</Text>
-                    <View style={styles.tagRow}>
-                      {snapshot.tools.map((t) => (
-                        <View key={t.id} style={styles.tag}>
-                          <Text style={styles.tagText}>{t.equipment.name}</Text>
-                        </View>
-                      ))}
-                    </View>
-                  </View>
-                )}
 
                 {/* Skills gained */}
                 {snapshot.skills && snapshot.skills.length > 0 && (
@@ -155,7 +161,9 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     padding: 16,
   },
-  snapshotNumber: { fontSize: 14, fontWeight: '700', color: '#000', marginBottom: 4 },
+  snapshotHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 } as any,
+  snapshotNumber: { fontSize: 14, fontWeight: '700', color: '#000' },
+  snapshotTime: { fontSize: 12, fontWeight: '300', color: '#aaa' },
   snapshotNotes: { fontSize: 13, color: '#666', marginBottom: 12 },
   photoRow: { flexDirection: 'row', gap: 8, marginBottom: 12 },
   photoContainer: { flex: 1 },

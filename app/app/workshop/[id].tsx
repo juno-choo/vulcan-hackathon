@@ -12,8 +12,28 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
+import Animated, { FadeInDown } from 'react-native-reanimated';
 import { useWorkshopDetail } from '@/hooks/useWorkshops';
+import { useWorkshopSnapshots } from '@/hooks/useSnapshots';
 import { useStore } from '@/lib/store';
+import type { Project } from '@/types';
+
+function timeAgo(dateStr: string): string {
+  const seconds = Math.floor((Date.now() - new Date(dateStr).getTime()) / 1000);
+  if (seconds < 60) return 'just now';
+  const minutes = Math.floor(seconds / 60);
+  if (minutes < 60) return `${minutes}m ago`;
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `${hours}h ago`;
+  const days = Math.floor(hours / 24);
+  if (days < 7) return `${days}d ago`;
+  const weeks = Math.floor(days / 7);
+  if (weeks < 5) return `${weeks}w ago`;
+  const months = Math.floor(days / 30);
+  if (months < 12) return `${months}mo ago`;
+  const years = Math.floor(days / 365);
+  return `${years}y ago`;
+}
 
 const { width } = Dimensions.get('window');
 
@@ -21,6 +41,7 @@ export default function WorkshopDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
   const { data: workshop, isLoading } = useWorkshopDetail(id);
+  const { data: workshopProjects = [] } = useWorkshopSnapshots(id);
   const [activePhoto, setActivePhoto] = useState(0);
   const [showFullDescription, setShowFullDescription] = useState(false);
   const [showFullBio, setShowFullBio] = useState(false);
@@ -197,6 +218,79 @@ export default function WorkshopDetailScreen() {
             </>
           )}
 
+          {/* Snapshot Timeline — past builds at this workshop */}
+          {workshopProjects.length > 0 && (
+            <>
+              <Text style={styles.sectionTitle}>Build Logs</Text>
+              <Text style={styles.buildLogSubtitle}>See what makers have built here</Text>
+              {workshopProjects.map((project: Project) => (
+                <View key={project.id} style={styles.projectBlock}>
+                  <Text style={styles.projectTitle}>{project.title}</Text>
+                  {project.description && (
+                    <Text style={styles.projectDesc}>{project.description}</Text>
+                  )}
+                  <Text style={styles.projectMeta}>
+                    {(project.booking as any)?.booker?.full_name || 'A maker'} · {project.snapshots?.length || 0} snapshots
+                  </Text>
+
+                  <View style={styles.timeline}>
+                    {project.snapshots?.map((snapshot, index) => (
+                      <Animated.View
+                        key={snapshot.id}
+                        entering={FadeInDown.delay(index * 100).duration(400)}
+                        style={styles.timelineNode}
+                      >
+                        <View style={styles.timelineTrack}>
+                          <View style={[
+                            styles.timelineDot,
+                            index === 0 && styles.timelineDotFirst,
+                          ]} />
+                          {index < (project.snapshots?.length || 0) - 1 && (
+                            <View style={styles.timelineLine} />
+                          )}
+                        </View>
+
+                        <View style={styles.snapshotCard}>
+                          <View style={styles.snapshotHeader}>
+                            <Text style={styles.snapshotNumber}>Snapshot #{snapshot.sequence_number}</Text>
+                            <Text style={styles.snapshotTime}>{timeAgo(snapshot.created_at)}</Text>
+                          </View>
+                          {snapshot.notes && (
+                            <Text style={styles.snapshotNotes}>{snapshot.notes}</Text>
+                          )}
+
+                          <View style={styles.photoRow}>
+                            <View style={styles.photoContainer}>
+                              <Text style={styles.photoLabel}>Before</Text>
+                              <Image source={{ uri: snapshot.before_photo_url }} style={styles.snapshotPhoto} />
+                            </View>
+                            <View style={styles.photoContainer}>
+                              <Text style={styles.photoLabel}>After</Text>
+                              <Image source={{ uri: snapshot.after_photo_url }} style={styles.snapshotPhoto} />
+                            </View>
+                          </View>
+
+                          {snapshot.skills && snapshot.skills.length > 0 && (
+                            <View style={styles.tagSection}>
+                              <Text style={styles.tagSectionLabel}>Skills gained</Text>
+                              <View style={styles.tagRow}>
+                                {snapshot.skills.map((s) => (
+                                  <View key={s.id} style={[styles.tag, styles.skillTag]}>
+                                    <Text style={[styles.tagText, styles.skillTagText]}>{s.skill.name}</Text>
+                                  </View>
+                                ))}
+                              </View>
+                            </View>
+                          )}
+                        </View>
+                      </Animated.View>
+                    ))}
+                  </View>
+                </View>
+              ))}
+            </>
+          )}
+
           {/* Spacer for bottom CTA */}
           <View style={{ height: 100 }} />
         </View>
@@ -300,6 +394,50 @@ const styles = StyleSheet.create({
   reviewerName: { fontSize: 14, fontWeight: '600', color: '#000' },
   reviewRating: { fontSize: 12, color: '#f5a623' },
   reviewComment: { fontSize: 14, color: '#555', lineHeight: 20 },
+  // Snapshot timeline styles
+  buildLogSubtitle: { fontSize: 13, color: '#999', marginBottom: 16, marginTop: -4 },
+  projectBlock: { marginBottom: 24 },
+  projectTitle: { fontSize: 17, fontWeight: '700', color: '#000', marginBottom: 2 },
+  projectDesc: { fontSize: 13, color: '#666', marginBottom: 4 },
+  projectMeta: { fontSize: 12, color: '#aaa', marginBottom: 12 },
+  timeline: { paddingLeft: 4 },
+  timelineNode: { flexDirection: 'row', marginBottom: 16 } as any,
+  timelineTrack: { width: 24, alignItems: 'center' } as any,
+  timelineDot: {
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+    backgroundColor: '#ddd',
+    borderWidth: 3,
+    borderColor: '#fff',
+    zIndex: 1,
+  },
+  timelineDotFirst: { backgroundColor: '#000' },
+  timelineLine: {
+    width: 2,
+    flex: 1,
+    backgroundColor: '#e0e0e0',
+    marginTop: -2,
+  },
+  snapshotCard: {
+    flex: 1,
+    marginLeft: 12,
+    backgroundColor: '#f9f9f9',
+    borderRadius: 16,
+    padding: 16,
+  },
+  snapshotHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 } as any,
+  snapshotNumber: { fontSize: 14, fontWeight: '700', color: '#000' },
+  snapshotTime: { fontSize: 12, fontWeight: '300', color: '#aaa' },
+  snapshotNotes: { fontSize: 13, color: '#666', marginBottom: 12 },
+  photoRow: { flexDirection: 'row', gap: 8, marginBottom: 12 } as any,
+  photoContainer: { flex: 1 },
+  photoLabel: { fontSize: 11, color: '#999', fontWeight: '500', marginBottom: 4 },
+  snapshotPhoto: { width: '100%' as any, height: 100, borderRadius: 10, backgroundColor: '#e0e0e0' },
+  tagSection: { marginTop: 8 },
+  tagSectionLabel: { fontSize: 12, color: '#999', fontWeight: '500', marginBottom: 6 },
+  skillTag: { backgroundColor: '#E8F5E9' },
+  skillTagText: { color: '#2E7D32' },
   ctaContainer: {
     position: 'absolute',
     bottom: 0,

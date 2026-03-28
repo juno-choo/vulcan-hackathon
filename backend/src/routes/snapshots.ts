@@ -151,6 +151,45 @@ router.post('/projects/:projectId/snapshots', async (req: Request, res: Response
   }
 });
 
+// GET /api/snapshots/workshop/:workshopId — all projects+snapshots for a workshop
+router.get('/workshop/:workshopId', async (req: Request, res: Response) => {
+  try {
+    const { data: bookings } = await supabase
+      .from('bookings')
+      .select('id')
+      .eq('workshop_id', req.params.workshopId);
+
+    if (!bookings || bookings.length === 0) {
+      res.json([]);
+      return;
+    }
+
+    const bookingIds = bookings.map((b) => b.id);
+
+    const { data: projects, error } = await supabase
+      .from('projects')
+      .select(`
+        *,
+        booking:bookings!projects_booking_id_fkey(
+          booking_date,
+          booker:users!bookings_booker_id_fkey(full_name, avatar_url)
+        ),
+        snapshots(
+          *,
+          tools:snapshot_tools(id, snapshot_id, equipment_id, equipment:equipment_catalog(*)),
+          skills:snapshot_skills(id, snapshot_id, skill_id, skill:skill_catalog(*))
+        )
+      `)
+      .in('booking_id', bookingIds)
+      .order('created_at', { ascending: false });
+
+    if (error) throw error;
+    res.json(projects || []);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // GET /api/snapshots/user/:userId
 router.get('/user/:userId', async (req: Request, res: Response) => {
   try {

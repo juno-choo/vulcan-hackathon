@@ -163,6 +163,46 @@ router.get('/workshop/:workshopId', async (req: Request, res: Response) => {
   }
 });
 
+// GET /api/bookings/host/:hostId — all bookings across host's workshops with booker info
+router.get('/host/:hostId', async (req: Request, res: Response) => {
+  try {
+    // Get all workshops owned by this host
+    const { data: workshops } = await supabase
+      .from('workshops')
+      .select('id')
+      .eq('host_id', req.params.hostId);
+
+    if (!workshops || workshops.length === 0) {
+      res.json([]);
+      return;
+    }
+
+    const workshopIds = workshops.map((w) => w.id);
+
+    let query = supabase
+      .from('bookings')
+      .select(`
+        *,
+        booker:users!bookings_booker_id_fkey(id, full_name, avatar_url, email, phone),
+        workshop:workshops!bookings_workshop_id_fkey(id, name, photo_urls, address),
+        timeSlotType:time_slot_types!bookings_time_slot_type_id_fkey(*),
+        addons:booking_addons(*, addon:addon_catalog(*))
+      `)
+      .in('workshop_id', workshopIds)
+      .order('booking_date', { ascending: false });
+
+    if (req.query.status) {
+      query = query.eq('status', req.query.status as string);
+    }
+
+    const { data, error } = await query;
+    if (error) throw error;
+    res.json(data || []);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // PATCH /api/bookings/:id/status
 router.patch('/:id/status', async (req: Request, res: Response) => {
   try {

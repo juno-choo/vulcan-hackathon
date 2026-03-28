@@ -12,7 +12,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { useStore } from '@/lib/store';
-import { useUserBookings } from '@/hooks/useBookings';
+import { useUserBookings, useHostBookings } from '@/hooks/useBookings';
 import type { Booking, BookingStatus } from '@/types';
 
 const STATUS_TABS: { label: string; value?: BookingStatus }[] = [
@@ -30,12 +30,27 @@ const STATUS_COLORS: Record<BookingStatus, { bg: string; text: string }> = {
   CANCELLED: { bg: '#F8D7DA', text: '#721C24' },
 };
 
+type ViewMode = 'booker' | 'host';
+
 export default function BookingsScreen() {
   const router = useRouter();
   const user = useStore((s) => s.user);
   const [statusFilter, setStatusFilter] = useState<BookingStatus | undefined>();
+  const isHost = user?.role === 'HOST' || user?.role === 'BOTH';
+  const isBooker = user?.role === 'BOOKER' || user?.role === 'BOTH';
+  const [viewMode, setViewMode] = useState<ViewMode>(isBooker ? 'booker' : 'host');
 
-  const { data: bookings = [], isLoading } = useUserBookings(user?.id || '', statusFilter);
+  const { data: bookerBookings = [], isLoading: bookerLoading } = useUserBookings(
+    viewMode === 'booker' ? (user?.id || '') : '',
+    statusFilter
+  );
+  const { data: hostBookings = [], isLoading: hostLoading } = useHostBookings(
+    viewMode === 'host' ? (user?.id || '') : '',
+    statusFilter
+  );
+
+  const bookings = viewMode === 'booker' ? bookerBookings : hostBookings;
+  const isLoading = viewMode === 'booker' ? bookerLoading : hostLoading;
 
   if (!user) {
     return (
@@ -59,6 +74,13 @@ export default function BookingsScreen() {
 
   const renderBooking = ({ item }: { item: Booking }) => {
     const colors = STATUS_COLORS[item.status];
+    const personLabel = viewMode === 'booker'
+      ? item.workshop?.host?.full_name
+      : item.booker?.full_name;
+    const personAvatar = viewMode === 'booker'
+      ? item.workshop?.host?.avatar_url
+      : item.booker?.avatar_url;
+
     return (
       <Pressable
         style={styles.card}
@@ -75,6 +97,16 @@ export default function BookingsScreen() {
               <Text style={[styles.badgeText, { color: colors.text }]}>{item.status}</Text>
             </View>
           </View>
+          {personLabel && (
+            <View style={styles.personRow}>
+              {personAvatar && (
+                <Image source={{ uri: personAvatar }} style={styles.personAvatar} />
+              )}
+              <Text style={styles.personName}>
+                {viewMode === 'booker' ? 'Host: ' : 'Client: '}{personLabel}
+              </Text>
+            </View>
+          )}
           <Text style={styles.cardDate}>
             {formatDate(item.booking_date)} · {item.timeSlotType?.name}
           </Text>
@@ -87,6 +119,28 @@ export default function BookingsScreen() {
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <Text style={styles.screenTitle}>My Bookings</Text>
+
+      {/* Role toggle — only show if user has both roles */}
+      {isHost && isBooker && (
+        <View style={styles.viewToggle}>
+          <Pressable
+            style={[styles.toggleBtn, viewMode === 'booker' && styles.toggleBtnActive]}
+            onPress={() => { setViewMode('booker'); setStatusFilter(undefined); }}
+          >
+            <Text style={[styles.toggleText, viewMode === 'booker' && styles.toggleTextActive]}>
+              My Bookings
+            </Text>
+          </Pressable>
+          <Pressable
+            style={[styles.toggleBtn, viewMode === 'host' && styles.toggleBtnActive]}
+            onPress={() => { setViewMode('host'); setStatusFilter(undefined); }}
+          >
+            <Text style={[styles.toggleText, viewMode === 'host' && styles.toggleTextActive]}>
+              Incoming
+            </Text>
+          </Pressable>
+        </View>
+      )}
 
       <View style={styles.pillLane}>
         <ScrollView
@@ -128,8 +182,14 @@ export default function BookingsScreen() {
           showsVerticalScrollIndicator={false}
           ListEmptyComponent={
             <View style={styles.empty}>
-              <Text style={styles.emptyTitle}>No bookings yet</Text>
-              <Text style={styles.emptySubtitle}>Find a workshop to get started</Text>
+              <Text style={styles.emptyTitle}>
+                {viewMode === 'host' ? 'No incoming bookings' : 'No bookings yet'}
+              </Text>
+              <Text style={styles.emptySubtitle}>
+                {viewMode === 'host'
+                  ? 'Bookings from clients will appear here'
+                  : 'Find a workshop to get started'}
+              </Text>
             </View>
           }
         />
@@ -141,6 +201,23 @@ export default function BookingsScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#fff' },
   screenTitle: { fontSize: 28, fontWeight: '700', paddingHorizontal: 20, paddingTop: 8, paddingBottom: 16 },
+  viewToggle: {
+    flexDirection: 'row',
+    marginHorizontal: 20,
+    marginBottom: 12,
+    backgroundColor: '#f5f5f5',
+    borderRadius: 12,
+    padding: 3,
+  },
+  toggleBtn: {
+    flex: 1,
+    paddingVertical: 10,
+    alignItems: 'center',
+    borderRadius: 10,
+  },
+  toggleBtnActive: { backgroundColor: '#000' },
+  toggleText: { fontSize: 14, fontWeight: '600', color: '#666' },
+  toggleTextActive: { color: '#fff' },
   pillLane: { height: 52, justifyContent: 'center' },
   pillRow: { paddingHorizontal: 20, gap: 8, alignItems: 'center', paddingVertical: 4 },
   pill: {
@@ -181,8 +258,11 @@ const styles = StyleSheet.create({
   cardTitle: { fontSize: 15, fontWeight: '700', color: '#000', flex: 1, marginRight: 8 },
   badge: { paddingHorizontal: 8, paddingVertical: 2, borderRadius: 8 },
   badgeText: { fontSize: 10, fontWeight: '700' },
-  cardDate: { fontSize: 13, color: '#888', marginTop: 4 },
-  cardPrice: { fontSize: 16, fontWeight: '700', color: '#000', marginTop: 4 },
+  personRow: { flexDirection: 'row', alignItems: 'center', marginTop: 3 },
+  personAvatar: { width: 16, height: 16, borderRadius: 8, marginRight: 4 },
+  personName: { fontSize: 12, color: '#555', fontWeight: '500' },
+  cardDate: { fontSize: 13, color: '#888', marginTop: 3 },
+  cardPrice: { fontSize: 16, fontWeight: '700', color: '#000', marginTop: 3 },
   empty: { alignItems: 'center', marginTop: 60 },
   emptyTitle: { fontSize: 18, fontWeight: '600', color: '#333' },
   emptySubtitle: { fontSize: 14, color: '#999', marginTop: 4 },

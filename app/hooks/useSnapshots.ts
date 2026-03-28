@@ -2,6 +2,14 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/lib/api';
 import type { Project, Snapshot } from '@/types';
 
+export function useWorkshopSnapshots(workshopId: string) {
+  return useQuery({
+    queryKey: ['projects', 'workshop', workshopId],
+    queryFn: () => api.get<Project[]>(`/snapshots/workshop/${workshopId}`),
+    enabled: !!workshopId,
+  });
+}
+
 export function useUserProjects(userId: string) {
   return useQuery({
     queryKey: ['projects', 'user', userId],
