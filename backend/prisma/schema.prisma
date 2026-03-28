@@ -1,0 +1,299 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+// ──────────────────────────────────────
+// Enums
+// ──────────────────────────────────────
+
+enum UserRole {
+  HOST
+  BOOKER
+  BOTH
+}
+
+enum BookingStatus {
+  PENDING
+  CONFIRMED
+  COMPLETED
+  CANCELLED
+}
+
+// ──────────────────────────────────────
+// Core models
+// ──────────────────────────────────────
+
+model User {
+  id        String   @id @default(uuid()) @db.Uuid
+  authId    String   @unique @map("auth_id")
+  email     String   @unique
+  fullName  String   @map("full_name")
+  role      UserRole @default(BOOKER)
+  avatarUrl String?  @map("avatar_url")
+  bio       String?
+  phone     String?
+  location  Json?    // { city, state, lat, lng }
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  workshops Workshop[]
+  bookings  Booking[]
+  reviews   Review[]
+
+  @@map("users")
+}
+
+model Workshop {
+  id                String  @id @default(uuid()) @db.Uuid
+  hostId            String  @map("host_id") @db.Uuid
+  serviceCategoryId String  @map("service_category_id") @db.Uuid
+  name              String
+  description       String?
+  address           String?
+  latitude          Float?
+  longitude         Float?
+  hourlyRate        Decimal @map("hourly_rate") @db.Decimal(10, 2)
+  photoUrls         String[] @map("photo_urls")
+  avgRating         Float?   @default(0) @map("avg_rating")
+  totalReviews      Int      @default(0) @map("total_reviews")
+  isActive          Boolean  @default(true) @map("is_active")
+  createdAt         DateTime @default(now()) @map("created_at")
+  updatedAt         DateTime @updatedAt @map("updated_at")
+
+  host            User              @relation(fields: [hostId], references: [id])
+  serviceCategory ServiceCategory   @relation(fields: [serviceCategoryId], references: [id])
+  equipment       WorkshopEquipment[]
+  availability    WorkshopAvailability[]
+  bookings        Booking[]
+
+  @@map("workshops")
+}
+
+// ──────────────────────────────────────
+// Lookup / reference tables
+// ──────────────────────────────────────
+
+model ServiceCategory {
+  id          String   @id @default(uuid()) @db.Uuid
+  name        String   @unique
+  icon        String?
+  description String?
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  workshops Workshop[]
+  skills    SkillCatalog[]
+
+  @@map("service_categories")
+}
+
+model EquipmentCategory {
+  id        String   @id @default(uuid()) @db.Uuid
+  name      String   @unique
+  icon      String?
+  createdAt DateTime @default(now()) @map("created_at")
+
+  equipment EquipmentCatalog[]
+
+  @@map("equipment_categories")
+}
+
+model EquipmentCatalog {
+  id         String @id @default(uuid()) @db.Uuid
+  categoryId String @map("category_id") @db.Uuid
+  name       String
+  icon       String?
+
+  category          EquipmentCategory   @relation(fields: [categoryId], references: [id])
+  workshopEquipment WorkshopEquipment[]
+  snapshotTools     SnapshotTool[]
+
+  @@unique([categoryId, name])
+  @@map("equipment_catalog")
+}
+
+model SkillCatalog {
+  id                String @id @default(uuid()) @db.Uuid
+  serviceCategoryId String @map("service_category_id") @db.Uuid
+  name              String
+
+  serviceCategory ServiceCategory @relation(fields: [serviceCategoryId], references: [id])
+  snapshotSkills  SnapshotSkill[]
+
+  @@unique([serviceCategoryId, name])
+  @@map("skill_catalog")
+}
+
+model TimeSlotType {
+  id        String @id @default(uuid()) @db.Uuid
+  name      String @unique // Morning, Afternoon, Evening
+  startTime String @map("start_time") // "08:00"
+  endTime   String @map("end_time")   // "12:00"
+
+  availability WorkshopAvailability[]
+  bookings     Booking[]
+
+  @@map("time_slot_types")
+}
+
+model AddonCatalog {
+  id           String  @id @default(uuid()) @db.Uuid
+  name         String  @unique
+  description  String?
+  defaultPrice Decimal @map("default_price") @db.Decimal(10, 2)
+  isActive     Boolean @default(true) @map("is_active")
+
+  bookingAddons BookingAddon[]
+
+  @@map("addon_catalog")
+}
+
+// ──────────────────────────────────────
+// Junction tables
+// ──────────────────────────────────────
+
+model WorkshopEquipment {
+  id          String @id @default(uuid()) @db.Uuid
+  workshopId  String @map("workshop_id") @db.Uuid
+  equipmentId String @map("equipment_id") @db.Uuid
+
+  workshop  Workshop         @relation(fields: [workshopId], references: [id], onDelete: Cascade)
+  equipment EquipmentCatalog @relation(fields: [equipmentId], references: [id])
+
+  @@unique([workshopId, equipmentId])
+  @@map("workshop_equipment")
+}
+
+model WorkshopAvailability {
+  id             String   @id @default(uuid()) @db.Uuid
+  workshopId     String   @map("workshop_id") @db.Uuid
+  timeSlotTypeId String   @map("time_slot_type_id") @db.Uuid
+  availableDate  DateTime @map("available_date") @db.Date
+  isAvailable    Boolean  @default(true) @map("is_available")
+
+  workshop     Workshop     @relation(fields: [workshopId], references: [id], onDelete: Cascade)
+  timeSlotType TimeSlotType @relation(fields: [timeSlotTypeId], references: [id])
+
+  @@unique([workshopId, timeSlotTypeId, availableDate])
+  @@map("workshop_availability")
+}
+
+// ──────────────────────────────────────
+// Booking system
+// ──────────────────────────────────────
+
+model Booking {
+  id                 String        @id @default(uuid()) @db.Uuid
+  bookerId           String        @map("booker_id") @db.Uuid
+  workshopId         String        @map("workshop_id") @db.Uuid
+  timeSlotTypeId     String        @map("time_slot_type_id") @db.Uuid
+  bookingDate        DateTime      @map("booking_date") @db.Date
+  status             BookingStatus @default(PENDING)
+  basePrice          Decimal       @map("base_price") @db.Decimal(10, 2)
+  totalPrice         Decimal       @map("total_price") @db.Decimal(10, 2)
+  safetyAcknowledged Boolean       @default(false) @map("safety_acknowledged")
+  notes              String?
+  lateCancellation   Boolean       @default(false) @map("late_cancellation")
+  createdAt          DateTime      @default(now()) @map("created_at")
+  updatedAt          DateTime      @updatedAt @map("updated_at")
+
+  booker       User           @relation(fields: [bookerId], references: [id])
+  workshop     Workshop       @relation(fields: [workshopId], references: [id], onDelete: Cascade)
+  timeSlotType TimeSlotType   @relation(fields: [timeSlotTypeId], references: [id])
+  addons       BookingAddon[]
+  project      Project?
+  review       Review?
+
+  @@map("bookings")
+}
+
+model BookingAddon {
+  id             String  @id @default(uuid()) @db.Uuid
+  bookingId      String  @map("booking_id") @db.Uuid
+  addonId        String  @map("addon_id") @db.Uuid
+  priceAtBooking Decimal @map("price_at_booking") @db.Decimal(10, 2)
+
+  booking Booking      @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  addon   AddonCatalog @relation(fields: [addonId], references: [id])
+
+  @@unique([bookingId, addonId])
+  @@map("booking_addons")
+}
+
+model Review {
+  id         String   @id @default(uuid()) @db.Uuid
+  bookingId  String   @unique @map("booking_id") @db.Uuid
+  reviewerId String   @map("reviewer_id") @db.Uuid
+  rating     Int      // 1-5
+  comment    String?
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  booking  Booking @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  reviewer User    @relation(fields: [reviewerId], references: [id])
+
+  @@map("reviews")
+}
+
+// ──────────────────────────────────────
+// Snapshot system
+// ──────────────────────────────────────
+
+model Project {
+  id          String   @id @default(uuid()) @db.Uuid
+  bookingId   String   @unique @map("booking_id") @db.Uuid
+  title       String
+  description String?
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  booking   Booking    @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  snapshots Snapshot[]
+
+  @@map("projects")
+}
+
+model Snapshot {
+  id             String   @id @default(uuid()) @db.Uuid
+  projectId      String   @map("project_id") @db.Uuid
+  sequenceNumber Int      @map("sequence_number")
+  beforePhotoUrl String   @map("before_photo_url")
+  afterPhotoUrl  String   @map("after_photo_url")
+  notes          String?
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  project Project         @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  tools   SnapshotTool[]
+  skills  SnapshotSkill[]
+
+  @@unique([projectId, sequenceNumber])
+  @@map("snapshots")
+}
+
+model SnapshotTool {
+  id          String @id @default(uuid()) @db.Uuid
+  snapshotId  String @map("snapshot_id") @db.Uuid
+  equipmentId String @map("equipment_id") @db.Uuid
+
+  snapshot  Snapshot         @relation(fields: [snapshotId], references: [id], onDelete: Cascade)
+  equipment EquipmentCatalog @relation(fields: [equipmentId], references: [id])
+
+  @@unique([snapshotId, equipmentId])
+  @@map("snapshot_tools")
+}
+
+model SnapshotSkill {
+  id         String @id @default(uuid()) @db.Uuid
+  snapshotId String @map("snapshot_id") @db.Uuid
+  skillId    String @map("skill_id") @db.Uuid
+
+  snapshot Snapshot     @relation(fields: [snapshotId], references: [id], onDelete: Cascade)
+  skill    SkillCatalog @relation(fields: [skillId], references: [id])
+
+  @@unique([snapshotId, skillId])
+  @@map("snapshot_skills")
+}
