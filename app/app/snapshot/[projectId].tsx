@@ -3,6 +3,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { useProjectDetail } from '@/hooks/useSnapshots';
+import { theme } from '@/constants/theme';
 import type { Snapshot } from '@/types';
 
 function timeAgo(dateStr: string): string {
@@ -120,7 +121,7 @@ export default function SnapshotTimelineScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#fff' },
+  container: { flex: 1, backgroundColor: theme.background },
   loading: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   header: {
     flexDirection: 'row',
@@ -129,12 +130,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingVertical: 12,
   },
-  backText: { fontSize: 18, color: '#000' },
-  headerTitle: { fontSize: 17, fontWeight: '600' },
+  backText: { fontSize: 18, color: theme.textPrimary },
+  headerTitle: { fontSize: 18, lineHeight: 25, fontWeight: '600', color: theme.textPrimary },
   scrollContent: { paddingHorizontal: 20, paddingBottom: 40 },
-  projectTitle: { fontSize: 24, fontWeight: '700', color: '#000', marginBottom: 4 },
-  projectDesc: { fontSize: 15, color: '#666', marginBottom: 8 },
-  projectMeta: { fontSize: 13, color: '#aaa', marginBottom: 24 },
+  projectTitle: { fontSize: 24, lineHeight: 32, fontWeight: '700', color: theme.textPrimary, marginBottom: 4 },
+  projectDesc: { fontSize: 15, lineHeight: 22, color: theme.textSecondary, marginBottom: 8 },
+  projectMeta: { fontSize: 13, lineHeight: 18, color: theme.textMuted, marginBottom: 24 },
   timeline: { paddingLeft: 4 },
   timelineNode: { flexDirection: 'row', marginBottom: 20 },
   timelineTrack: { width: 24, alignItems: 'center' },
@@ -142,43 +143,43 @@ const styles = StyleSheet.create({
     width: 12,
     height: 12,
     borderRadius: 6,
-    backgroundColor: '#ddd',
+    backgroundColor: theme.border,
     borderWidth: 3,
-    borderColor: '#fff',
+    borderColor: theme.surface,
     zIndex: 1,
   },
-  timelineDotFirst: { backgroundColor: '#000' },
+  timelineDotFirst: { backgroundColor: theme.primary },
   timelineLine: {
     width: 2,
     flex: 1,
-    backgroundColor: '#e0e0e0',
+    backgroundColor: theme.border,
     marginTop: -2,
   },
   snapshotCard: {
     flex: 1,
     marginLeft: 12,
-    backgroundColor: '#f9f9f9',
+    backgroundColor: theme.surface,
     borderRadius: 16,
     padding: 16,
   },
   snapshotHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 } as any,
-  snapshotNumber: { fontSize: 14, fontWeight: '700', color: '#000' },
-  snapshotTime: { fontSize: 12, fontWeight: '300', color: '#aaa' },
-  snapshotNotes: { fontSize: 13, color: '#666', marginBottom: 12 },
+  snapshotNumber: { fontSize: 14, lineHeight: 20, fontWeight: '700', color: theme.textPrimary },
+  snapshotTime: { fontSize: 13, lineHeight: 18, fontWeight: '400', color: theme.textMuted },
+  snapshotNotes: { fontSize: 13, lineHeight: 18, color: theme.textSecondary, marginBottom: 12 },
   photoRow: { flexDirection: 'row', gap: 8, marginBottom: 12 },
   photoContainer: { flex: 1 },
-  photoLabel: { fontSize: 11, color: '#999', fontWeight: '500', marginBottom: 4 },
-  photo: { width: '100%', height: 100, borderRadius: 10, backgroundColor: '#e0e0e0' },
+  photoLabel: { fontSize: 13, lineHeight: 18, color: theme.textMuted, fontWeight: '500', marginBottom: 4 },
+  photo: { width: '100%', height: 100, borderRadius: 10, backgroundColor: theme.surfaceSoft },
   tagSection: { marginTop: 8 },
-  tagLabel: { fontSize: 12, color: '#999', fontWeight: '500', marginBottom: 6 },
+  tagLabel: { fontSize: 13, lineHeight: 18, color: theme.textMuted, fontWeight: '500', marginBottom: 6 },
   tagRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 6 },
   tag: {
-    backgroundColor: '#e8e8e8',
+    backgroundColor: theme.surfaceSoft,
     paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: 8,
   },
-  tagText: { fontSize: 12, color: '#444', fontWeight: '500' },
-  skillTag: { backgroundColor: '#E8F5E9' },
-  skillTagText: { color: '#2E7D32' },
+  tagText: { fontSize: 13, lineHeight: 18, color: theme.textSecondary, fontWeight: '500' },
+  skillTag: { backgroundColor: '#D8EEE7' },
+  skillTagText: { color: theme.success },
 });

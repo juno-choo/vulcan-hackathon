@@ -3,6 +3,7 @@ import { View, Text, TextInput, Pressable, StyleSheet, ActivityIndicator } from 
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { useStore } from '@/lib/store';
+import { theme } from '@/constants/theme';
 
 export default function LoginScreen() {
   const { signIn } = useStore();
@@ -39,7 +40,7 @@ export default function LoginScreen() {
           <TextInput
             style={styles.input}
             placeholder="Email"
-            placeholderTextColor="#999"
+            placeholderTextColor={theme.textMuted}
             value={email}
             onChangeText={setEmail}
             autoCapitalize="none"
@@ -48,7 +49,7 @@ export default function LoginScreen() {
           <TextInput
             style={styles.input}
             placeholder="Password"
-            placeholderTextColor="#999"
+            placeholderTextColor={theme.textMuted}
             value={password}
             onChangeText={setPassword}
             secureTextEntry
@@ -62,7 +63,7 @@ export default function LoginScreen() {
             disabled={loading}
           >
             {loading ? (
-              <ActivityIndicator color="#fff" />
+              <ActivityIndicator color={theme.onPrimary} />
             ) : (
               <Text style={styles.buttonText}>Sign In</Text>
             )}
@@ -74,30 +75,30 @@ export default function LoginScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#fff' },
+  container: { flex: 1, backgroundColor: theme.background },
   content: { flex: 1, justifyContent: 'center', paddingHorizontal: 32 },
-  title: { fontSize: 40, fontWeight: '800', textAlign: 'center', color: '#000' },
-  subtitle: { fontSize: 16, color: '#888', textAlign: 'center', marginTop: 8, marginBottom: 48 },
+  title: { fontSize: 42, lineHeight: 50, fontWeight: '800', textAlign: 'center', color: theme.primary },
+  subtitle: { fontSize: 16, lineHeight: 24, color: theme.textSecondary, textAlign: 'center', marginTop: 8, marginBottom: 48 },
   form: { gap: 16 },
   input: {
     height: 52,
     borderWidth: 1,
-    borderColor: '#e0e0e0',
+    borderColor: theme.border,
     borderRadius: 12,
     paddingHorizontal: 16,
     fontSize: 16,
-    backgroundColor: '#fafafa',
-    color: '#000',
+    backgroundColor: theme.surface,
+    color: theme.textPrimary,
   },
-  error: { color: '#FF3B30', fontSize: 14, textAlign: 'center' },
+  error: { color: theme.destructive, fontSize: 14, lineHeight: 20, textAlign: 'center' },
   button: {
     height: 52,
-    backgroundColor: '#000',
+    backgroundColor: theme.primary,
     borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
     marginTop: 8,
   },
   buttonDisabled: { opacity: 0.6 },
-  buttonText: { color: '#fff', fontSize: 16, fontWeight: '700' },
+  buttonText: { color: theme.onPrimary, fontSize: 16, fontWeight: '700', lineHeight: 22 },
 });

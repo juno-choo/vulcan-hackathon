@@ -6,6 +6,7 @@ import MapboxGL from '@rnmapbox/maps';
 import Animated, { useSharedValue, useAnimatedStyle, withSpring, runOnJS } from 'react-native-reanimated';
 import { useWorkshops } from '@/hooks/useWorkshops';
 import { useLookups } from '@/hooks/useLookups';
+import { theme } from '@/constants/theme';
 import type { Workshop } from '@/types';
 
 MapboxGL.setAccessToken(process.env.EXPO_PUBLIC_MAPBOX_TOKEN!);
@@ -143,17 +144,17 @@ const styles = StyleSheet.create({
   container: { flex: 1 },
   map: { flex: 1 },
   pin: {
-    backgroundColor: '#000',
+    backgroundColor: theme.primary,
     paddingHorizontal: 10,
     paddingVertical: 6,
     borderRadius: 16,
-    shadowColor: '#000',
+    shadowColor: theme.textPrimary,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.2,
     shadowRadius: 4,
     elevation: 3,
   },
-  pinText: { color: '#fff', fontSize: 13, fontWeight: '700' },
+  pinText: { color: theme.onPrimary, fontSize: 13, fontWeight: '700' },
   filterOverlay: {
     position: 'absolute',
     top: 0,
@@ -165,25 +166,25 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderRadius: 20,
-    backgroundColor: 'rgba(255,255,255,0.95)',
-    shadowColor: '#000',
+    backgroundColor: 'rgba(255,255,255,0.96)',
+    shadowColor: theme.textPrimary,
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 2,
   },
-  pillActive: { backgroundColor: '#000' },
-  pillText: { fontSize: 14, color: '#333', fontWeight: '500' },
-  pillTextActive: { color: '#fff' },
+  pillActive: { backgroundColor: theme.primary },
+  pillText: { fontSize: 14, color: theme.textPrimary, fontWeight: '500', lineHeight: 20 },
+  pillTextActive: { color: theme.onPrimary },
   popup: {
     position: 'absolute',
     bottom: 24,
     left: 20,
     right: 20,
-    backgroundColor: '#fff',
+    backgroundColor: theme.card,
     borderRadius: 16,
     overflow: 'hidden',
-    shadowColor: '#000',
+    shadowColor: theme.textPrimary,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.15,
     shadowRadius: 12,
@@ -194,11 +195,11 @@ const styles = StyleSheet.create({
   },
   popupImage: { width: 100, height: 100 },
   popupContent: { flex: 1, padding: 12, justifyContent: 'center' },
-  popupTitle: { fontSize: 16, fontWeight: '700', color: '#000' },
-  popupRating: { fontSize: 12, color: '#888', marginTop: 2 },
+  popupTitle: { fontSize: 16, fontWeight: '700', color: theme.textPrimary, lineHeight: 24 },
+  popupRating: { fontSize: 13, color: theme.textSecondary, marginTop: 2, lineHeight: 18 },
   popupEquipment: { flexDirection: 'row', gap: 4, marginTop: 4 },
-  popupEquipText: { fontSize: 10, color: '#666', backgroundColor: '#f0f0f0', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4 },
-  popupPrice: { fontSize: 16, fontWeight: '700', color: '#000', marginTop: 4 },
+  popupEquipText: { fontSize: 13, color: theme.textSecondary, backgroundColor: theme.surfaceSoft, paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4, lineHeight: 18 },
+  popupPrice: { fontSize: 16, fontWeight: '700', color: theme.primary, marginTop: 4, lineHeight: 24 },
   closeBtn: { position: 'absolute', top: 8, right: 8 },
-  closeBtnText: { fontSize: 16, color: '#999' },
+  closeBtnText: { fontSize: 16, color: theme.textMuted },
 });
