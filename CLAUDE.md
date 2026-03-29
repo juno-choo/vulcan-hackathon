@@ -49,7 +49,20 @@ npx expo run:ios         # Dev build iOS
 - **Photos:** API expects pre-signed Supabase Storage URLs as strings — no multipart upload. Frontend uploads to Supabase Storage first, then sends URLs to API.
 - **No input validation library** (no Zod, Joi). Required fields checked manually. No shared types between frontend and backend.
 
+### Supabase FK join syntax
+Runtime queries use PostgREST-style FK joins. When writing new queries, follow this pattern:
+```typescript
+// Alias : table ! foreign_key_constraint_name ( columns )
+const { data } = await supabase
+  .from('bookings')
+  .select(`*, workshop:workshops!bookings_workshop_id_fkey(name, photo_urls),
+              booker:users!bookings_booker_id_fkey(full_name, avatar_url),
+              timeSlotType:time_slot_types!bookings_time_slot_type_id_fkey(*)`)
+```
+Constraint names follow Prisma's convention: `{table}_{column}_fkey`. Check `prisma/schema.prisma` for relationship names.
+
 ### Key API endpoints
+- `GET /api/health` — health check
 - `GET /api/lookups/all` — all lookups in one call (cached on app init)
 - `GET /api/auth/me/:userId` — fetch user profile (session persistence)
 - `POST /api/auth/login` — email/password login (no registration endpoint — users pre-seeded for MVP)
@@ -62,6 +75,15 @@ npx expo run:ios         # Dev build iOS
 - `POST /api/snapshots/projects/:projectId/snapshots` — requires before + after photos
 - `GET /api/snapshots/workshop/:workshopId` — all projects + snapshots for a workshop (used for build log display)
 - `GET /api/bookings/host/:hostId?status=` — all bookings across host's workshops with booker info
+
+## Enums & state machines
+
+- **UserRole:** `HOST`, `BOOKER`, `BOTH`
+- **BookingStatus:** `PENDING` → `CONFIRMED` → `COMPLETED` (or `CANCELLED` from any state). Transition to `COMPLETED` requires at least one snapshot.
+
+## Photo upload flow
+
+Frontend uploads to Supabase Storage directly (via `expo-image-picker` → Supabase SDK), receives a public URL, then passes that URL string to the API. The backend never handles file bytes.
 
 ## Domain rules
 
@@ -76,6 +98,11 @@ npx expo run:ios         # Dev build iOS
 - **Slot availability:** Creating a booking sets `workshop_availability.is_available = false`; cancelling re-opens it. No DB-level double-booking prevention.
 - **Lookups response shape:** `{ serviceCategories, equipmentCategories, timeSlots, addons }`. `equipmentCategories` includes nested `equipment` arrays.
 - **Dev builds required** (not Expo Go) because of Mapbox native SDK.
+
+## Key versions
+
+- Expo SDK 55 (canary), React 19, React Native 0.83, React Query 5, Zustand 5
+- Backend: Express 4, Prisma 6, Supabase JS 2, TypeScript 5.7
 
 ## Environment
 

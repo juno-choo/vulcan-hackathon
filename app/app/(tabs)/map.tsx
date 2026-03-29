@@ -1,8 +1,9 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { View, Text, StyleSheet, Pressable, ScrollView, Image, Dimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import MapboxGL from '@rnmapbox/maps';
+import Animated, { useSharedValue, useAnimatedStyle, withSpring, runOnJS } from 'react-native-reanimated';
 import { useWorkshops } from '@/hooks/useWorkshops';
 import { useLookups } from '@/hooks/useLookups';
 import type { Workshop } from '@/types';
@@ -19,6 +20,26 @@ export default function MapScreen() {
   const { serviceCategories } = useLookups();
   const [selectedCategory, setSelectedCategory] = useState<string | undefined>();
   const [selectedWorkshop, setSelectedWorkshop] = useState<Workshop | null>(null);
+  const [visibleWorkshop, setVisibleWorkshop] = useState<Workshop | null>(null);
+  const translateY = useSharedValue(200);
+
+  const showWorkshop = useCallback((ws: Workshop) => {
+    setVisibleWorkshop(ws);
+    setSelectedWorkshop(ws);
+    translateY.value = 200;
+    translateY.value = withSpring(0, { damping: 50, stiffness: 200 });
+  }, []);
+
+  const hideWorkshop = useCallback(() => {
+    setSelectedWorkshop(null);
+    translateY.value = withSpring(200, { damping: 50, stiffness: 200 }, (finished) => {
+      if (finished) runOnJS(setVisibleWorkshop)(null);
+    });
+  }, []);
+
+  const popupStyle = useAnimatedStyle(() => ({
+    transform: [{ translateY: translateY.value }],
+  }));
 
   const { data: workshops = [] } = useWorkshops({
     lat: DEFAULT_CENTER[1],
@@ -45,7 +66,7 @@ export default function MapScreen() {
               key={ws.id}
               id={ws.id}
               coordinate={[ws.longitude, ws.latitude]}
-              onSelected={() => setSelectedWorkshop(ws)}
+              onSelected={() => showWorkshop(ws)}
             >
               <View style={styles.pin}>
                 <Text style={styles.pinText}>${Number(ws.hourly_rate).toFixed(0)}</Text>
@@ -83,34 +104,36 @@ export default function MapScreen() {
       </SafeAreaView>
 
       {/* Selected workshop popup */}
-      {selectedWorkshop && (
-        <Pressable
-          style={styles.popup}
-          onPress={() => {
-            router.push(`/workshop/${selectedWorkshop.id}`);
-            setSelectedWorkshop(null);
-          }}
-        >
-          <Image
-            source={{ uri: selectedWorkshop.photo_urls[0] || 'https://via.placeholder.com/120x80' }}
-            style={styles.popupImage}
-          />
-          <View style={styles.popupContent}>
-            <Text style={styles.popupTitle} numberOfLines={1}>{selectedWorkshop.name}</Text>
-            <Text style={styles.popupRating}>
-              ★ {selectedWorkshop.avg_rating?.toFixed(1)} · {selectedWorkshop.serviceCategory?.name}
-            </Text>
-            <View style={styles.popupEquipment}>
-              {selectedWorkshop.equipment?.slice(0, 3).map((we) => (
-                <Text key={we.id} style={styles.popupEquipText}>{we.equipment.name}</Text>
-              ))}
+      {visibleWorkshop && (
+        <Animated.View style={[styles.popup, popupStyle]}>
+          <Pressable
+            style={styles.popupInner}
+            onPress={() => {
+              router.push(`/workshop/${visibleWorkshop.id}`);
+              hideWorkshop();
+            }}
+          >
+            <Image
+              source={{ uri: visibleWorkshop.photo_urls[0] || 'https://via.placeholder.com/120x80' }}
+              style={styles.popupImage}
+            />
+            <View style={styles.popupContent}>
+              <Text style={styles.popupTitle} numberOfLines={1}>{visibleWorkshop.name}</Text>
+              <Text style={styles.popupRating}>
+                ★ {visibleWorkshop.avg_rating?.toFixed(1)} · {visibleWorkshop.serviceCategory?.name}
+              </Text>
+              <View style={styles.popupEquipment}>
+                {visibleWorkshop.equipment?.slice(0, 3).map((we) => (
+                  <Text key={we.id} style={styles.popupEquipText}>{we.equipment.name}</Text>
+                ))}
+              </View>
+              <Text style={styles.popupPrice}>${Number(visibleWorkshop.hourly_rate).toFixed(0)}/hr</Text>
             </View>
-            <Text style={styles.popupPrice}>${Number(selectedWorkshop.hourly_rate).toFixed(0)}/hr</Text>
-          </View>
-          <Pressable style={styles.closeBtn} onPress={() => setSelectedWorkshop(null)}>
+          </Pressable>
+          <Pressable style={styles.closeBtn} onPress={hideWorkshop}>
             <Text style={styles.closeBtnText}>✕</Text>
           </Pressable>
-        </Pressable>
+        </Animated.View>
       )}
     </View>
   );
@@ -159,13 +182,15 @@ const styles = StyleSheet.create({
     right: 20,
     backgroundColor: '#fff',
     borderRadius: 16,
-    flexDirection: 'row',
     overflow: 'hidden',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.15,
     shadowRadius: 12,
     elevation: 6,
+  },
+  popupInner: {
+    flexDirection: 'row',
   },
   popupImage: { width: 100, height: 100 },
   popupContent: { flex: 1, padding: 12, justifyContent: 'center' },
