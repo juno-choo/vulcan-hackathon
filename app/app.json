@@ -4,11 +4,11 @@
     "slug": "vulcan",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/icon.png",
+    "icon": "./assets/images/vertical.png",
     "scheme": "vulcan",
     "userInterfaceStyle": "automatic",
     "splash": {
-      "image": "./assets/images/splash-icon.png",
+      "image": "./assets/images/vertical.png",
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
