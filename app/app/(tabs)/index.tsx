@@ -1,22 +1,23 @@
-import { useCallback, useState } from 'react';
+import { theme } from "@/constants/theme";
+import { useLookups } from "@/hooks/useLookups";
+import { useWorkshops } from "@/hooks/useWorkshops";
+import type { Workshop } from "@/types";
+import { useRouter } from "expo-router";
+import { useState } from "react";
 import {
-  View,
-  Text,
-  StyleSheet,
+  Dimensions,
   FlatList,
   Image,
   Pressable,
-  ScrollView,
   RefreshControl,
-  Dimensions,
-} from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { useRouter } from 'expo-router';
-import { useWorkshops } from '@/hooks/useWorkshops';
-import { useLookups } from '@/hooks/useLookups';
-import type { Workshop } from '@/types';
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
-const { width } = Dimensions.get('window');
+const { width } = Dimensions.get("window");
 const CARD_WIDTH = width - 40;
 
 // Wichita, KS center
@@ -26,9 +27,15 @@ const DEFAULT_LNG = -97.3301;
 export default function HomeScreen() {
   const router = useRouter();
   const { serviceCategories } = useLookups();
-  const [selectedCategory, setSelectedCategory] = useState<string | undefined>();
+  const [selectedCategory, setSelectedCategory] = useState<
+    string | undefined
+  >();
 
-  const { data: workshops = [], isLoading, refetch } = useWorkshops({
+  const {
+    data: workshops = [],
+    isLoading,
+    refetch,
+  } = useWorkshops({
     lat: DEFAULT_LAT,
     lng: DEFAULT_LNG,
     radius: 50,
@@ -41,40 +48,56 @@ export default function HomeScreen() {
       onPress={() => router.push(`/workshop/${item.id}`)}
     >
       <Image
-        source={{ uri: item.photo_urls[0] || 'https://via.placeholder.com/400x250' }}
+        source={{
+          uri: item.photo_urls[0] || "https://via.placeholder.com/400x250",
+        }}
         style={styles.cardImage}
       />
       <View style={styles.cardOverlay}>
         <View style={styles.ratingBadge}>
-          <Text style={styles.ratingText}>★ {item.avg_rating?.toFixed(1) || '—'}</Text>
+          <Text style={styles.ratingText}>
+            ★ {item.avg_rating?.toFixed(1) || "—"}
+          </Text>
         </View>
       </View>
       <View style={styles.cardContent}>
-        <Text style={styles.cardTitle} numberOfLines={1}>{item.name}</Text>
+        <Text style={styles.cardTitle} numberOfLines={1}>
+          {item.name}
+        </Text>
         <Text style={styles.cardSubtitle} numberOfLines={1}>
-          {item.serviceCategory?.name} · {item.address?.split(',')[1]?.trim() || 'Wichita, KS'}
+          {item.serviceCategory?.name} ·{" "}
+          {item.address?.split(",")[1]?.trim() || "Wichita, KS"}
         </Text>
         <View style={styles.cardFooter}>
           <View style={styles.equipmentRow}>
             {item.equipment?.slice(0, 3).map((we) => (
               <View key={we.id} style={styles.equipmentPill}>
-                <Text style={styles.equipmentPillText} numberOfLines={1} ellipsizeMode="tail">
+                <Text
+                  style={styles.equipmentPillText}
+                  numberOfLines={1}
+                  ellipsizeMode="tail"
+                >
                   {we.equipment.name}
                 </Text>
               </View>
             ))}
             {(item.equipment?.length || 0) > 3 && (
-              <Text style={styles.moreText}>+{(item.equipment?.length || 0) - 3}</Text>
+              <Text style={styles.moreText}>
+                +{(item.equipment?.length || 0) - 3}
+              </Text>
             )}
           </View>
-          <Text style={styles.price}>${Number(item.hourly_rate).toFixed(0)}<Text style={styles.priceUnit}>/hr</Text></Text>
+          <Text style={styles.price}>
+            ${Number(item.hourly_rate).toFixed(0)}
+            <Text style={styles.priceUnit}>/hr</Text>
+          </Text>
         </View>
       </View>
     </Pressable>
   );
 
   return (
-    <SafeAreaView style={styles.container} edges={['top']}>
+    <SafeAreaView style={styles.container} edges={["top"]}>
       {/* Header — inspired by home.png */}
       <View style={styles.header}>
         <View>
@@ -97,21 +120,37 @@ export default function HomeScreen() {
             style={[styles.pill, !selectedCategory && styles.pillActive]}
             onPress={() => setSelectedCategory(undefined)}
           >
-            <Text allowFontScaling={false} style={[styles.pillText, !selectedCategory && styles.pillTextActive]}>
+            <Text
+              allowFontScaling={false}
+              style={[
+                styles.pillText,
+                !selectedCategory && styles.pillTextActive,
+              ]}
+            >
               All
             </Text>
           </Pressable>
           {serviceCategories.map((cat) => (
             <Pressable
               key={cat.id}
-              style={[styles.pill, selectedCategory === cat.id && styles.pillActive]}
-              onPress={() => setSelectedCategory(selectedCategory === cat.id ? undefined : cat.id)}
+              style={[
+                styles.pill,
+                selectedCategory === cat.id && styles.pillActive,
+              ]}
+              onPress={() =>
+                setSelectedCategory(
+                  selectedCategory === cat.id ? undefined : cat.id,
+                )
+              }
             >
               <Text
                 allowFontScaling={false}
                 numberOfLines={1}
                 ellipsizeMode="tail"
-                style={[styles.pillText, selectedCategory === cat.id && styles.pillTextActive]}
+                style={[
+                  styles.pillText,
+                  selectedCategory === cat.id && styles.pillTextActive,
+                ]}
               >
                 {cat.name}
               </Text>
@@ -127,12 +166,16 @@ export default function HomeScreen() {
         renderItem={renderWorkshopCard}
         contentContainerStyle={styles.list}
         showsVerticalScrollIndicator={false}
-        refreshControl={<RefreshControl refreshing={isLoading} onRefresh={refetch} />}
+        refreshControl={
+          <RefreshControl refreshing={isLoading} onRefresh={refetch} />
+        }
         ListEmptyComponent={
           !isLoading ? (
             <View style={styles.empty}>
               <Text style={styles.emptyTitle}>No workshops found</Text>
-              <Text style={styles.emptySubtitle}>Try adjusting your filters</Text>
+              <Text style={styles.emptySubtitle}>
+                Try adjusting your filters
+              </Text>
             </View>
           ) : null
         }
@@ -142,99 +185,158 @@ export default function HomeScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#fff' },
+  container: { flex: 1, backgroundColor: theme.background },
   header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     paddingHorizontal: 20,
     paddingTop: 8,
     paddingBottom: 16,
   },
-  greeting: { fontSize: 28, fontWeight: '300', color: '#000' },
-  title: { fontSize: 28, fontWeight: '700', color: '#000' },
+  greeting: {
+    fontSize: 30,
+    fontWeight: "300",
+    color: theme.textPrimary,
+    lineHeight: 38,
+  },
+  title: {
+    fontSize: 30,
+    fontWeight: "700",
+    color: theme.textPrimary,
+    lineHeight: 38,
+  },
   filterButton: {
     width: 44,
     height: 44,
     borderRadius: 22,
-    backgroundColor: '#f5f5f5',
-    alignItems: 'center',
-    justifyContent: 'center',
+    backgroundColor: theme.surfaceSoft,
+    alignItems: "center",
+    justifyContent: "center",
   },
   filterIcon: { fontSize: 20 },
-  pillLane: { height: 52, justifyContent: 'center', marginBottom: 8 },
-  pillRow: { paddingHorizontal: 20, gap: 8, alignItems: 'center', paddingVertical: 4 },
+  pillLane: { height: 52, justifyContent: "center", marginBottom: 8 },
+  pillRow: {
+    paddingHorizontal: 20,
+    gap: 8,
+    alignItems: "center",
+    paddingVertical: 4,
+  },
   pill: {
     paddingHorizontal: 16,
     height: 40,
     borderRadius: 20,
-    backgroundColor: '#f5f5f5',
-    alignItems: 'center',
-    justifyContent: 'center',
+    backgroundColor: theme.surfaceSoft,
+    alignItems: "center",
+    justifyContent: "center",
     flexShrink: 0,
   },
-  pillActive: { backgroundColor: '#000' },
+  pillActive: { backgroundColor: theme.primary },
   pillText: {
     fontSize: 14,
     lineHeight: 18,
-    color: '#666',
-    fontWeight: '500',
+    color: theme.textSecondary,
+    fontWeight: "500",
     includeFontPadding: false,
-    textAlignVertical: 'center',
+    textAlignVertical: "center",
   },
-  pillTextActive: { color: '#fff' },
+  pillTextActive: { color: theme.onPrimary },
   list: { paddingHorizontal: 20, paddingBottom: 20 },
   card: {
     width: CARD_WIDTH,
     borderRadius: 20,
-    backgroundColor: '#fff',
+    backgroundColor: theme.card,
     marginBottom: 20,
-    shadowColor: '#000',
+    shadowColor: theme.textPrimary,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.08,
     shadowRadius: 12,
     elevation: 4,
-    overflow: 'hidden',
+    overflow: "hidden",
   },
   cardImage: {
-    width: '100%',
+    width: "100%",
     height: 200,
-    backgroundColor: '#f0f0f0',
+    backgroundColor: theme.surfaceSoft,
   },
   cardOverlay: {
-    position: 'absolute',
+    position: "absolute",
     top: 12,
     right: 12,
   },
   ratingBadge: {
-    backgroundColor: 'rgba(255,255,255,0.95)',
+    backgroundColor: "rgba(255,255,255,0.96)",
     paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: 12,
   },
-  ratingText: { fontSize: 13, fontWeight: '700', color: '#000' },
+  ratingText: { fontSize: 13, fontWeight: "700", color: theme.textPrimary },
   cardContent: { padding: 16 },
-  cardTitle: { fontSize: 18, fontWeight: '700', color: '#000', marginBottom: 4 },
-  cardSubtitle: { fontSize: 14, color: '#888', marginBottom: 12 },
-  cardFooter: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+  cardTitle: {
+    fontSize: 19,
+    fontWeight: "700",
+    color: theme.textPrimary,
+    marginBottom: 4,
+    lineHeight: 26,
   },
-  equipmentRow: { flex: 1, minWidth: 0, flexDirection: 'row', gap: 6, marginRight: 10 },
+  cardSubtitle: {
+    fontSize: 15,
+    color: theme.textSecondary,
+    marginBottom: 12,
+    lineHeight: 22,
+  },
+  cardFooter: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  equipmentRow: {
+    flex: 1,
+    minWidth: 0,
+    flexDirection: "row",
+    gap: 6,
+    marginRight: 10,
+  },
   equipmentPill: {
-    backgroundColor: '#f0f0f0',
+    backgroundColor: theme.surfaceSoft,
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 8,
     minWidth: 0,
     maxWidth: 80,
   },
-  equipmentPillText: { fontSize: 11, color: '#555', fontWeight: '500', flexShrink: 1 },
-  moreText: { fontSize: 12, color: '#999', alignSelf: 'center' },
-  price: { fontSize: 20, fontWeight: '700', color: '#000', flexShrink: 0 },
-  priceUnit: { fontSize: 14, fontWeight: '400', color: '#888' },
-  empty: { alignItems: 'center', marginTop: 60 },
-  emptyTitle: { fontSize: 18, fontWeight: '600', color: '#333' },
-  emptySubtitle: { fontSize: 14, color: '#999', marginTop: 4 },
+  equipmentPillText: {
+    fontSize: 13,
+    color: theme.textSecondary,
+    fontWeight: "500",
+    flexShrink: 1,
+    lineHeight: 18,
+  },
+  moreText: { fontSize: 13, color: theme.textMuted, alignSelf: "center" },
+  price: {
+    fontSize: 22,
+    fontWeight: "700",
+    color: theme.primary,
+    flexShrink: 0,
+    lineHeight: 30,
+  },
+  priceUnit: {
+    fontSize: 13,
+    fontWeight: "500",
+    color: theme.textSecondary,
+    lineHeight: 18,
+  },
+  empty: { alignItems: "center", marginTop: 60 },
+  emptyTitle: {
+    fontSize: 19,
+    fontWeight: "600",
+    color: theme.textPrimary,
+    lineHeight: 26,
+  },
+  emptySubtitle: {
+    fontSize: 15,
+    color: theme.textMuted,
+    marginTop: 4,
+    lineHeight: 22,
+  },
 });

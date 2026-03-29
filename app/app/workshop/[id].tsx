@@ -1,26 +1,27 @@
-import { useState } from 'react';
+import { theme } from "@/constants/theme";
+import { useWorkshopSnapshots } from "@/hooks/useSnapshots";
+import { useWorkshopDetail } from "@/hooks/useWorkshops";
+import { useStore } from "@/lib/store";
+import type { Project } from "@/types";
+import { useLocalSearchParams, useRouter } from "expo-router";
+import { useState } from "react";
 import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
+  ActivityIndicator,
+  Dimensions,
+  FlatList,
   Image,
   Pressable,
-  Dimensions,
-  ActivityIndicator,
-  FlatList,
-} from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { useLocalSearchParams, useRouter } from 'expo-router';
-import Animated, { FadeInDown } from 'react-native-reanimated';
-import { useWorkshopDetail } from '@/hooks/useWorkshops';
-import { useWorkshopSnapshots } from '@/hooks/useSnapshots';
-import { useStore } from '@/lib/store';
-import type { Project } from '@/types';
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
+import Animated, { FadeInDown } from "react-native-reanimated";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 function timeAgo(dateStr: string): string {
   const seconds = Math.floor((Date.now() - new Date(dateStr).getTime()) / 1000);
-  if (seconds < 60) return 'just now';
+  if (seconds < 60) return "just now";
   const minutes = Math.floor(seconds / 60);
   if (minutes < 60) return `${minutes}m ago`;
   const hours = Math.floor(minutes / 60);
@@ -35,7 +36,7 @@ function timeAgo(dateStr: string): string {
   return `${years}y ago`;
 }
 
-const { width } = Dimensions.get('window');
+const { width } = Dimensions.get("window");
 
 export default function WorkshopDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -46,7 +47,7 @@ export default function WorkshopDetailScreen() {
   const [showFullDescription, setShowFullDescription] = useState(false);
   const [showFullBio, setShowFullBio] = useState(false);
   const [showAuthPrompt, setShowAuthPrompt] = useState(false);
-  const {user} = useStore();
+  const { user } = useStore();
   if (isLoading || !workshop) {
     return (
       <View style={styles.loading}>
@@ -66,12 +67,17 @@ export default function WorkshopDetailScreen() {
 
   if (showAuthPrompt && !user) {
     return (
-      <SafeAreaView style={styles.container} edges={['top']}>
+      <SafeAreaView style={styles.container} edges={["top"]}>
         <Text style={styles.screenTitle}>Book A Session</Text>
         <View style={styles.authPrompt}>
           <Text style={styles.authTitle}>Sign in to book a session.</Text>
-          <Text style={styles.authSubtitle}>We cannot wait for you to learn a new skill!</Text>
-          <Pressable style={styles.authButton} onPress={() => router.push('/login')}>
+          <Text style={styles.authSubtitle}>
+            We cannot wait for you to learn a new skill!
+          </Text>
+          <Pressable
+            style={styles.authButton}
+            onPress={() => router.push("/login")}
+          >
             <Text style={styles.authButtonText}>Sign In</Text>
           </Pressable>
         </View>
@@ -99,7 +105,7 @@ export default function WorkshopDetailScreen() {
           />
 
           {/* Back button */}
-          <SafeAreaView style={styles.heroOverlay} edges={['top']}>
+          <SafeAreaView style={styles.heroOverlay} edges={["top"]}>
             <Pressable style={styles.backButton} onPress={() => router.back()}>
               <Text style={styles.backIcon}>‹</Text>
             </Pressable>
@@ -122,7 +128,9 @@ export default function WorkshopDetailScreen() {
 
           <View style={styles.locationRow}>
             <Text style={styles.locationIcon}>📍</Text>
-            <Text style={styles.locationText}>{workshop.address || 'Wichita, KS'}</Text>
+            <Text style={styles.locationText}>
+              {workshop.address || "Wichita, KS"}
+            </Text>
           </View>
 
           {/* Description */}
@@ -133,9 +141,11 @@ export default function WorkshopDetailScreen() {
             {workshop.description}
           </Text>
           {(workshop.description?.length || 0) > 120 && (
-            <Pressable onPress={() => setShowFullDescription(!showFullDescription)}>
+            <Pressable
+              onPress={() => setShowFullDescription(!showFullDescription)}
+            >
               <Text style={styles.readMore}>
-                {showFullDescription ? 'Show less' : 'Read more'}
+                {showFullDescription ? "Show less" : "Read more"}
               </Text>
             </Pressable>
           )}
@@ -143,11 +153,16 @@ export default function WorkshopDetailScreen() {
           {/* Host info */}
           <View style={styles.hostRow}>
             <Image
-              source={{ uri: workshop.host?.avatar_url || 'https://via.placeholder.com/48' }}
+              source={{
+                uri:
+                  workshop.host?.avatar_url || "https://via.placeholder.com/48",
+              }}
               style={styles.hostAvatar}
             />
             <View style={styles.hostInfo}>
-              <Text style={styles.hostName}>Hosted by {workshop.host?.full_name}</Text>
+              <Text style={styles.hostName}>
+                Hosted by {workshop.host?.full_name}
+              </Text>
               {workshop.host?.bio && (
                 <>
                   <Text
@@ -159,7 +174,7 @@ export default function WorkshopDetailScreen() {
                   {workshop.host.bio.length > 80 && (
                     <Pressable onPress={() => setShowFullBio(!showFullBio)}>
                       <Text style={styles.bioToggle}>
-                        {showFullBio ? 'See less' : 'See more'}
+                        {showFullBio ? "See less" : "See more"}
                       </Text>
                     </Pressable>
                   )}
@@ -181,17 +196,23 @@ export default function WorkshopDetailScreen() {
           {/* Stats row — like beds/baths in peek.png */}
           <View style={styles.statsRow}>
             <View style={styles.stat}>
-              <Text style={styles.statValue}>★ {workshop.avg_rating?.toFixed(1) || '—'}</Text>
+              <Text style={styles.statValue}>
+                ★ {workshop.avg_rating?.toFixed(1) || "—"}
+              </Text>
               <Text style={styles.statLabel}>rating</Text>
             </View>
             <View style={styles.statDivider} />
             <View style={styles.stat}>
-              <Text style={styles.statValue}>{workshop.total_reviews || 0}</Text>
+              <Text style={styles.statValue}>
+                {workshop.total_reviews || 0}
+              </Text>
               <Text style={styles.statLabel}>reviews</Text>
             </View>
             <View style={styles.statDivider} />
             <View style={styles.stat}>
-              <Text style={styles.statValue}>{workshop.equipment?.length || 0}</Text>
+              <Text style={styles.statValue}>
+                {workshop.equipment?.length || 0}
+              </Text>
               <Text style={styles.statLabel}>tools</Text>
             </View>
           </View>
@@ -204,15 +225,26 @@ export default function WorkshopDetailScreen() {
                 <View key={review.id} style={styles.reviewCard}>
                   <View style={styles.reviewHeader}>
                     <Image
-                      source={{ uri: review.reviewer?.avatar_url || 'https://via.placeholder.com/32' }}
+                      source={{
+                        uri:
+                          review.reviewer?.avatar_url ||
+                          "https://via.placeholder.com/32",
+                      }}
                       style={styles.reviewerAvatar}
                     />
                     <View>
-                      <Text style={styles.reviewerName}>{review.reviewer?.full_name}</Text>
-                      <Text style={styles.reviewRating}>{'★'.repeat(review.rating)}{'☆'.repeat(5 - review.rating)}</Text>
+                      <Text style={styles.reviewerName}>
+                        {review.reviewer?.full_name}
+                      </Text>
+                      <Text style={styles.reviewRating}>
+                        {"★".repeat(review.rating)}
+                        {"☆".repeat(5 - review.rating)}
+                      </Text>
                     </View>
                   </View>
-                  {review.comment && <Text style={styles.reviewComment}>{review.comment}</Text>}
+                  {review.comment && (
+                    <Text style={styles.reviewComment}>{review.comment}</Text>
+                  )}
                 </View>
               ))}
             </>
@@ -222,15 +254,20 @@ export default function WorkshopDetailScreen() {
           {workshopProjects.length > 0 && (
             <>
               <Text style={styles.sectionTitle}>Build Logs</Text>
-              <Text style={styles.buildLogSubtitle}>See what makers have built here</Text>
+              <Text style={styles.buildLogSubtitle}>
+                See what makers have built here
+              </Text>
               {workshopProjects.map((project: Project) => (
                 <View key={project.id} style={styles.projectBlock}>
                   <Text style={styles.projectTitle}>{project.title}</Text>
                   {project.description && (
-                    <Text style={styles.projectDesc}>{project.description}</Text>
+                    <Text style={styles.projectDesc}>
+                      {project.description}
+                    </Text>
                   )}
                   <Text style={styles.projectMeta}>
-                    {(project.booking as any)?.booker?.full_name || 'A maker'} · {project.snapshots?.length || 0} snapshots
+                    {(project.booking as any)?.booker?.full_name || "A maker"} ·{" "}
+                    {project.snapshots?.length || 0} snapshots
                   </Text>
 
                   <View style={styles.timeline}>
@@ -241,10 +278,12 @@ export default function WorkshopDetailScreen() {
                         style={styles.timelineNode}
                       >
                         <View style={styles.timelineTrack}>
-                          <View style={[
-                            styles.timelineDot,
-                            index === 0 && styles.timelineDotFirst,
-                          ]} />
+                          <View
+                            style={[
+                              styles.timelineDot,
+                              index === 0 && styles.timelineDotFirst,
+                            ]}
+                          />
                           {index < (project.snapshots?.length || 0) - 1 && (
                             <View style={styles.timelineLine} />
                           )}
@@ -252,31 +291,55 @@ export default function WorkshopDetailScreen() {
 
                         <View style={styles.snapshotCard}>
                           <View style={styles.snapshotHeader}>
-                            <Text style={styles.snapshotNumber}>Snapshot #{snapshot.sequence_number}</Text>
-                            <Text style={styles.snapshotTime}>{timeAgo(snapshot.created_at)}</Text>
+                            <Text style={styles.snapshotNumber}>
+                              Snapshot #{snapshot.sequence_number}
+                            </Text>
+                            <Text style={styles.snapshotTime}>
+                              {timeAgo(snapshot.created_at)}
+                            </Text>
                           </View>
                           {snapshot.notes && (
-                            <Text style={styles.snapshotNotes}>{snapshot.notes}</Text>
+                            <Text style={styles.snapshotNotes}>
+                              {snapshot.notes}
+                            </Text>
                           )}
 
                           <View style={styles.photoRow}>
                             <View style={styles.photoContainer}>
                               <Text style={styles.photoLabel}>Before</Text>
-                              <Image source={{ uri: snapshot.before_photo_url }} style={styles.snapshotPhoto} />
+                              <Image
+                                source={{ uri: snapshot.before_photo_url }}
+                                style={styles.snapshotPhoto}
+                              />
                             </View>
                             <View style={styles.photoContainer}>
                               <Text style={styles.photoLabel}>After</Text>
-                              <Image source={{ uri: snapshot.after_photo_url }} style={styles.snapshotPhoto} />
+                              <Image
+                                source={{ uri: snapshot.after_photo_url }}
+                                style={styles.snapshotPhoto}
+                              />
                             </View>
                           </View>
 
                           {snapshot.skills && snapshot.skills.length > 0 && (
                             <View style={styles.tagSection}>
-                              <Text style={styles.tagSectionLabel}>Skills gained</Text>
+                              <Text style={styles.tagSectionLabel}>
+                                Skills gained
+                              </Text>
                               <View style={styles.tagRow}>
                                 {snapshot.skills.map((s) => (
-                                  <View key={s.id} style={[styles.tag, styles.skillTag]}>
-                                    <Text style={[styles.tagText, styles.skillTagText]}>{s.skill.name}</Text>
+                                  <View
+                                    key={s.id}
+                                    style={[styles.tag, styles.skillTag]}
+                                  >
+                                    <Text
+                                      style={[
+                                        styles.tagText,
+                                        styles.skillTagText,
+                                      ]}
+                                    >
+                                      {s.skill.name}
+                                    </Text>
                                   </View>
                                 ))}
                               </View>
@@ -297,16 +360,15 @@ export default function WorkshopDetailScreen() {
       </ScrollView>
 
       {/* Fixed bottom CTA — like "Send inquiry" in peek.png */}
-      <SafeAreaView style={styles.ctaContainer} edges={['bottom']}>
+      <SafeAreaView style={styles.ctaContainer} edges={["bottom"]}>
         <View style={styles.ctaContent}>
           <View>
-            <Text style={styles.ctaPrice}>${Number(workshop.hourly_rate).toFixed(0)}</Text>
+            <Text style={styles.ctaPrice}>
+              ${Number(workshop.hourly_rate).toFixed(0)}
+            </Text>
             <Text style={styles.ctaPriceUnit}>per session</Text>
           </View>
-          <Pressable
-            style={styles.ctaButton}
-            onPress={handleBookSession}
-          >
+          <Pressable style={styles.ctaButton} onPress={handleBookSession}>
             <Text style={styles.ctaButtonText}>Book a session</Text>
           </Pressable>
         </View>
@@ -316,167 +378,344 @@ export default function WorkshopDetailScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#fff' },
-  screenTitle: { fontSize: 28, fontWeight: '700', paddingHorizontal: 20, paddingTop: 8, paddingBottom: 16 },
-  loading: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  heroContainer: { position: 'relative' },
-  heroImage: { width, height: 300, backgroundColor: '#f0f0f0' },
-  heroOverlay: { position: 'absolute', top: 0, left: 0, right: 0 },
+  container: { flex: 1, backgroundColor: theme.background },
+  screenTitle: {
+    fontSize: 30,
+    lineHeight: 38,
+    fontWeight: "700",
+    paddingHorizontal: 20,
+    paddingTop: 8,
+    paddingBottom: 16,
+    color: theme.textPrimary,
+  },
+  loading: { flex: 1, justifyContent: "center", alignItems: "center" },
+  heroContainer: { position: "relative" },
+  heroImage: { width, height: 300, backgroundColor: theme.surfaceSoft },
+  heroOverlay: { position: "absolute", top: 0, left: 0, right: 0 },
   backButton: {
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: 'rgba(255,255,255,0.9)',
-    alignItems: 'center',
-    justifyContent: 'center',
+    backgroundColor: "rgba(255,255,255,0.92)",
+    alignItems: "center",
+    justifyContent: "center",
     marginLeft: 16,
     marginTop: 8,
   },
-  backIcon: { fontSize: 28, fontWeight: '300', color: '#000', marginTop: -2 },
+  backIcon: {
+    fontSize: 28,
+    fontWeight: "300",
+    color: theme.textPrimary,
+    marginTop: -2,
+  },
   indicators: {
-    position: 'absolute',
+    position: "absolute",
     bottom: 16,
-    flexDirection: 'row',
-    alignSelf: 'center',
+    flexDirection: "row",
+    alignSelf: "center",
     gap: 6,
   },
-  dot: { width: 8, height: 8, borderRadius: 4, backgroundColor: 'rgba(255,255,255,0.5)' },
-  dotActive: { backgroundColor: '#fff', width: 20 },
+  dot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: "rgba(255,255,255,0.5)",
+  },
+  dotActive: { backgroundColor: theme.onPrimary, width: 20 },
   content: {
     padding: 20,
     marginTop: -20,
-    backgroundColor: '#fff',
+    backgroundColor: theme.surface,
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
   },
-  workshopName: { fontSize: 24, fontWeight: '700', color: '#000', marginBottom: 8 },
-  locationRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 12 },
+  workshopName: {
+    fontSize: 24,
+    lineHeight: 32,
+    fontWeight: "700",
+    color: theme.textPrimary,
+    marginBottom: 8,
+  },
+  locationRow: { flexDirection: "row", alignItems: "center", marginBottom: 12 },
   locationIcon: { fontSize: 14, marginRight: 4 },
-  locationText: { fontSize: 14, color: '#888' },
-  description: { fontSize: 15, color: '#555', lineHeight: 22, marginBottom: 4 },
-  readMore: { fontSize: 14, fontWeight: '600', color: '#000', marginBottom: 16 },
+  locationText: { fontSize: 15, lineHeight: 22, color: theme.textSecondary },
+  description: {
+    fontSize: 15,
+    color: theme.textSecondary,
+    lineHeight: 22,
+    marginBottom: 4,
+  },
+  readMore: {
+    fontSize: 15,
+    lineHeight: 22,
+    fontWeight: "600",
+    color: theme.primary,
+    marginBottom: 16,
+  },
   hostRow: {
-    flexDirection: 'row',
+    flexDirection: "row",
     padding: 16,
-    backgroundColor: '#f9f9f9',
+    backgroundColor: theme.surface,
     borderRadius: 16,
     marginBottom: 20,
   },
-  hostAvatar: { width: 48, height: 48, borderRadius: 24, backgroundColor: '#e0e0e0' },
+  hostAvatar: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: theme.surfaceSoft,
+  },
   hostInfo: { marginLeft: 12, flex: 1 },
-  hostName: { fontSize: 16, fontWeight: '600', color: '#000' },
-  hostBio: { fontSize: 13, color: '#888', marginTop: 4, lineHeight: 19 },
-  bioToggle: { fontSize: 13, fontWeight: '600', color: '#000', marginTop: 4 },
-  sectionTitle: { fontSize: 18, fontWeight: '700', color: '#000', marginBottom: 12 },
-  tagRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 20 },
-  tag: { backgroundColor: '#f0f0f0', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 12 },
-  tagText: { fontSize: 13, color: '#444', fontWeight: '500' },
+  hostName: {
+    fontSize: 16,
+    lineHeight: 24,
+    fontWeight: "600",
+    color: theme.textPrimary,
+  },
+  hostBio: {
+    fontSize: 13,
+    lineHeight: 20,
+    color: theme.textSecondary,
+    marginTop: 4,
+  },
+  bioToggle: {
+    fontSize: 13,
+    lineHeight: 18,
+    fontWeight: "600",
+    color: theme.primary,
+    marginTop: 4,
+  },
+  sectionTitle: {
+    fontSize: 19,
+    lineHeight: 26,
+    fontWeight: "700",
+    color: theme.textPrimary,
+    marginBottom: 12,
+  },
+  tagRow: { flexDirection: "row", flexWrap: "wrap", gap: 8, marginBottom: 20 },
+  tag: {
+    backgroundColor: theme.surfaceSoft,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 12,
+  },
+  tagText: {
+    fontSize: 13,
+    lineHeight: 18,
+    color: theme.textSecondary,
+    fontWeight: "500",
+  },
   statsRow: {
-    flexDirection: 'row',
-    backgroundColor: '#f9f9f9',
+    flexDirection: "row",
+    backgroundColor: theme.surface,
     borderRadius: 16,
     padding: 16,
     marginBottom: 20,
-    justifyContent: 'space-around',
+    justifyContent: "space-around",
   },
-  stat: { alignItems: 'center' },
-  statValue: { fontSize: 18, fontWeight: '700', color: '#000' },
-  statLabel: { fontSize: 12, color: '#888', marginTop: 2 },
-  statDivider: { width: 1, backgroundColor: '#e0e0e0' },
+  stat: { alignItems: "center" },
+  statValue: {
+    fontSize: 18,
+    lineHeight: 25,
+    fontWeight: "700",
+    color: theme.textPrimary,
+  },
+  statLabel: {
+    fontSize: 13,
+    lineHeight: 18,
+    color: theme.textSecondary,
+    marginTop: 2,
+  },
+  statDivider: { width: 1, backgroundColor: theme.border },
   reviewCard: {
-    backgroundColor: '#f9f9f9',
+    backgroundColor: theme.surface,
     borderRadius: 12,
     padding: 14,
     marginBottom: 10,
   },
-  reviewHeader: { flexDirection: 'row', alignItems: 'center', marginBottom: 8 },
+  reviewHeader: { flexDirection: "row", alignItems: "center", marginBottom: 8 },
   reviewerAvatar: { width: 32, height: 32, borderRadius: 16, marginRight: 10 },
-  reviewerName: { fontSize: 14, fontWeight: '600', color: '#000' },
-  reviewRating: { fontSize: 12, color: '#f5a623' },
-  reviewComment: { fontSize: 14, color: '#555', lineHeight: 20 },
+  reviewerName: {
+    fontSize: 14,
+    lineHeight: 20,
+    fontWeight: "600",
+    color: theme.textPrimary,
+  },
+  reviewRating: { fontSize: 13, lineHeight: 18, color: theme.warning },
+  reviewComment: { fontSize: 14, color: theme.textSecondary, lineHeight: 20 },
   // Snapshot timeline styles
-  buildLogSubtitle: { fontSize: 13, color: '#999', marginBottom: 16, marginTop: -4 },
+  buildLogSubtitle: {
+    fontSize: 13,
+    lineHeight: 18,
+    color: theme.textMuted,
+    marginBottom: 16,
+    marginTop: -4,
+  },
   projectBlock: { marginBottom: 24 },
-  projectTitle: { fontSize: 17, fontWeight: '700', color: '#000', marginBottom: 2 },
-  projectDesc: { fontSize: 13, color: '#666', marginBottom: 4 },
-  projectMeta: { fontSize: 12, color: '#aaa', marginBottom: 12 },
+  projectTitle: {
+    fontSize: 18,
+    lineHeight: 25,
+    fontWeight: "700",
+    color: theme.textPrimary,
+    marginBottom: 2,
+  },
+  projectDesc: {
+    fontSize: 13,
+    lineHeight: 18,
+    color: theme.textSecondary,
+    marginBottom: 4,
+  },
+  projectMeta: {
+    fontSize: 13,
+    lineHeight: 18,
+    color: theme.textMuted,
+    marginBottom: 12,
+  },
   timeline: { paddingLeft: 4 },
-  timelineNode: { flexDirection: 'row', marginBottom: 16 } as any,
-  timelineTrack: { width: 24, alignItems: 'center' } as any,
+  timelineNode: { flexDirection: "row", marginBottom: 16 } as any,
+  timelineTrack: { width: 24, alignItems: "center" } as any,
   timelineDot: {
     width: 12,
     height: 12,
     borderRadius: 6,
-    backgroundColor: '#ddd',
+    backgroundColor: theme.border,
     borderWidth: 3,
-    borderColor: '#fff',
+    borderColor: theme.surface,
     zIndex: 1,
   },
-  timelineDotFirst: { backgroundColor: '#000' },
+  timelineDotFirst: { backgroundColor: theme.primary },
   timelineLine: {
     width: 2,
     flex: 1,
-    backgroundColor: '#e0e0e0',
+    backgroundColor: theme.border,
     marginTop: -2,
   },
   snapshotCard: {
     flex: 1,
     marginLeft: 12,
-    backgroundColor: '#f9f9f9',
+    backgroundColor: theme.surface,
     borderRadius: 16,
     padding: 16,
   },
-  snapshotHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 } as any,
-  snapshotNumber: { fontSize: 14, fontWeight: '700', color: '#000' },
-  snapshotTime: { fontSize: 12, fontWeight: '300', color: '#aaa' },
-  snapshotNotes: { fontSize: 13, color: '#666', marginBottom: 12 },
-  photoRow: { flexDirection: 'row', gap: 8, marginBottom: 12 } as any,
+  snapshotHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 4,
+  } as any,
+  snapshotNumber: {
+    fontSize: 14,
+    lineHeight: 20,
+    fontWeight: "700",
+    color: theme.textPrimary,
+  },
+  snapshotTime: {
+    fontSize: 13,
+    lineHeight: 18,
+    fontWeight: "400",
+    color: theme.textMuted,
+  },
+  snapshotNotes: {
+    fontSize: 13,
+    lineHeight: 18,
+    color: theme.textSecondary,
+    marginBottom: 12,
+  },
+  photoRow: { flexDirection: "row", gap: 8, marginBottom: 12 } as any,
   photoContainer: { flex: 1 },
-  photoLabel: { fontSize: 11, color: '#999', fontWeight: '500', marginBottom: 4 },
-  snapshotPhoto: { width: '100%' as any, height: 100, borderRadius: 10, backgroundColor: '#e0e0e0' },
+  photoLabel: {
+    fontSize: 13,
+    lineHeight: 18,
+    color: theme.textMuted,
+    fontWeight: "500",
+    marginBottom: 4,
+  },
+  snapshotPhoto: {
+    width: "100%" as any,
+    height: 100,
+    borderRadius: 10,
+    backgroundColor: theme.surfaceSoft,
+  },
   tagSection: { marginTop: 8 },
-  tagSectionLabel: { fontSize: 12, color: '#999', fontWeight: '500', marginBottom: 6 },
-  skillTag: { backgroundColor: '#E8F5E9' },
-  skillTagText: { color: '#2E7D32' },
+  tagSectionLabel: {
+    fontSize: 13,
+    lineHeight: 18,
+    color: theme.textMuted,
+    fontWeight: "500",
+    marginBottom: 6,
+  },
+  skillTag: { backgroundColor: "#D8EEE7" },
+  skillTagText: { color: theme.success },
   ctaContainer: {
-    position: 'absolute',
+    position: "absolute",
     bottom: 0,
     left: 0,
     right: 0,
-    backgroundColor: '#fff',
+    backgroundColor: theme.surface,
     borderTopWidth: 1,
-    borderTopColor: '#f0f0f0',
-    shadowColor: '#000',
+    borderTopColor: theme.border,
+    shadowColor: theme.textPrimary,
     shadowOffset: { width: 0, height: -2 },
     shadowOpacity: 0.05,
     shadowRadius: 8,
     elevation: 4,
   },
   ctaContent: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     paddingHorizontal: 20,
     paddingVertical: 12,
   },
-  ctaPrice: { fontSize: 22, fontWeight: '700', color: '#000' },
-  ctaPriceUnit: { fontSize: 13, color: '#888' },
+  ctaPrice: {
+    fontSize: 22,
+    lineHeight: 30,
+    fontWeight: "700",
+    color: theme.primary,
+  },
+  ctaPriceUnit: { fontSize: 13, lineHeight: 18, color: theme.textSecondary },
   ctaButton: {
-    backgroundColor: '#000',
+    backgroundColor: theme.primary,
     paddingHorizontal: 28,
     paddingVertical: 14,
     borderRadius: 14,
   },
-  ctaButtonText: { color: '#fff', fontSize: 16, fontWeight: '600' },
-  authPrompt: { flex: 1, justifyContent: 'center', alignItems: 'center', paddingHorizontal: 32 },
-  authTitle: { fontSize: 20, fontWeight: '700', color: '#000' },
-  authSubtitle: { fontSize: 14, color: '#888', marginTop: 8, textAlign: 'center' },
+  ctaButtonText: {
+    color: theme.onPrimary,
+    fontSize: 16,
+    lineHeight: 22,
+    fontWeight: "600",
+  },
+  authPrompt: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    paddingHorizontal: 32,
+  },
+  authTitle: {
+    fontSize: 22,
+    lineHeight: 30,
+    fontWeight: "700",
+    color: theme.textPrimary,
+  },
+  authSubtitle: {
+    fontSize: 15,
+    lineHeight: 22,
+    color: theme.textSecondary,
+    marginTop: 8,
+    textAlign: "center",
+  },
   authButton: {
     marginTop: 24,
-    backgroundColor: '#000',
+    backgroundColor: theme.primary,
     paddingHorizontal: 32,
     paddingVertical: 14,
     borderRadius: 12,
   },
-  authButtonText: { color: '#fff', fontSize: 16, fontWeight: '700' },
+  authButtonText: {
+    color: theme.onPrimary,
+    fontSize: 16,
+    lineHeight: 22,
+    fontWeight: "700",
+  },
 });

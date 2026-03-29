@@ -1,22 +1,23 @@
 import { Tabs } from 'expo-router';
 import { SymbolView } from 'expo-symbols';
 import { Platform } from 'react-native';
+import { theme } from '@/constants/theme';
 
 export default function TabLayout() {
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: '#000',
-        tabBarInactiveTintColor: '#999',
+        tabBarActiveTintColor: theme.primary,
+        tabBarInactiveTintColor: theme.textMuted,
         tabBarStyle: {
-          backgroundColor: '#fff',
-          borderTopColor: '#eee',
+          backgroundColor: theme.surface,
+          borderTopColor: theme.border,
           height: Platform.OS === 'ios' ? 88 : 64,
           paddingBottom: Platform.OS === 'ios' ? 28 : 8,
           paddingTop: 8,
         },
         tabBarLabelStyle: {
-          fontSize: 11,
+          fontSize: 13,
           fontWeight: '600',
         },
         headerShown: false,
